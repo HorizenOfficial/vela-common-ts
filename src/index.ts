@@ -1,5 +1,5 @@
 //crypto
-export { deriveP521PrivateKeyFromMetamask } from "./crypto/utils";
+export { deriveP521PrivateKeyFromMetamask, ethersSignerFromBrowser } from "./crypto/utils";
 
 //blockchain
-export { HorizenPESClient } from "./blockchain/client";
+export { HorizenPESClient, RequestType } from "./blockchain/client";

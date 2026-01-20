@@ -1,3 +1,5 @@
+import { ethers, Signer } from "ethers";
+
 export async function deriveP521PrivateKeyFromMetamask(
   challenge: string
 ): Promise<Uint8Array> {
@@ -38,4 +40,14 @@ export async function deriveP521PrivateKeyFromMetamask(
 
   // private key P-521 ≈ 66 byte
   return hash.slice(0, 66);
+}
+
+export async function ethersSignerFromBrowser(): Promise<Signer> {
+  if (!(window as any).ethereum) {
+    throw new Error("wallet not connected");
+  }
+  const ethereum = (window as any).ethereum;
+  const provider = new ethers.BrowserProvider(ethereum);
+  const signer = await provider.getSigner();
+  return signer;
 }
