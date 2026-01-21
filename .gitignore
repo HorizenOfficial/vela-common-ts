@@ -1,3 +1,7 @@
 dist
 /node_modules
 /tsconfig.tsbuildinfo
+src/*.js
+/cache/compile-cache.json
+/artifacts/artifacts.d.ts
+/src/**/*.js

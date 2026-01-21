@@ -1,25 +1,21 @@
 import { ethers, Signer } from "ethers";
 
-export async function deriveP521PrivateKeyFromMetamask(
+const CHALLENGE = "challenge";
+
+export async function deriveP521PrivateKeyFromSigner(signer: Signer): Promise<Uint8Array> {
+  return await deriveP521PrivateKeyFromSignerWithCustomChallenge(signer, CHALLENGE);
+}
+
+export async function deriveP521PrivateKeyFromSignerWithCustomChallenge(
+  signer: Signer,
   challenge: string
 ): Promise<Uint8Array> {
   if (!(window as any).ethereum) {
     throw new Error("wallet not connected");
   }
 
-  const ethereum = (window as any).ethereum;
-
-  //sign challenge message
-  const accounts: string[] = await ethereum.request({
-    method: "eth_requestAccounts"
-  });
-
-  const address = accounts[0];
-
-  const signature: string = await ethereum.request({
-    method: "personal_sign",
-    params: [challenge, address]
-  });
+  //sign challenge
+  const signature: string = await signer.signMessage(challenge);
 
   const sigHex = signature.startsWith("0x")
     ? signature.slice(2)
