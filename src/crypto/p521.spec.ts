@@ -57,7 +57,7 @@ describe("Client test", function () {
   });
 
   // TESTS
-  it("cipher and decipher", async () => {
+  it("crypt and decrypt", async () => {
     //derive key from signer
     const keyPair1 = await deriveP521PrivateKeyFromSigner(signer, true);
     const keyPair2 = await deriveP521PrivateKeyFromSignerWithCustomChallenge(signer, TEST_DIFFERENT_CHALLENGE, true);
@@ -65,10 +65,10 @@ describe("Client test", function () {
     assert.notEqual(keyPair1.privateKey, keyPair2.privateKey);
     assert.notEqual(keyPair1.publicKey, keyPair2.publicKey);
 
-    //cipher message
+    //encrypt message
     const encrypted = await encrypt(keyPair1.privateKey, keyPair2.publicKey, stringToBytes(TEST_MESSAGE));
 
-    //decipher message
+    //decrypt message
     const decryptedBytes = await decrypt(keyPair2.privateKey, keyPair1.publicKey, encrypted);
     const decryptedMessage = bytesToString(decryptedBytes);
 
