@@ -12,12 +12,66 @@ export class P521KeyPair {
   ) {}
 }
 
+import { createHash, webcrypto } from "crypto";
+import { ec as EC } from "elliptic";
+
+const ec = new EC("p521");
+const subtle = webcrypto.subtle;
+
+export async function deriveKeyPairFromSeed(seed: Uint8Array): Promise<P521KeyPair> {
+  const hash = createHash("sha512").update(seed).digest();
+  const n = BigInt(ec.curve.n.toString(10));
+  const d = (BigInt("0x" + hash.toString("hex")) % (n - BigInt(1))) + BigInt(1);
+
+  const key = ec.keyFromPrivate(d.toString(16), "hex");
+  const pub = key.getPublic();
+
+  const x = Buffer.from(pub.getX().toArray("be", 66));
+  const y = Buffer.from(pub.getY().toArray("be", 66));
+  const dBuf = Buffer.from(d.toString(16), "hex");
+
+  const privateJwk: JsonWebKey = {
+    kty: "EC",
+    crv: "P-521",
+    x: b64url(x),
+    y: b64url(y),
+    d: b64url(dBuf),
+    ext: true,
+  };
+
+  const publicJwk: JsonWebKey = {
+    kty: "EC",
+    crv: "P-521",
+    x: b64url(x),
+    y: b64url(y),
+    ext: true,
+  };
+
+  const privateKey = await subtle.importKey(
+    "jwk",
+    privateJwk,
+    { name: "ECDH", namedCurve: "P-521" },
+    true,
+    ["deriveBits", "deriveKey"]
+  );
+
+  const publicKey = await subtle.importKey(
+    "jwk",
+    publicJwk,
+    { name: "ECDH", namedCurve: "P-521" },
+    true,
+    []
+  );
+
+  return new P521KeyPair(privateKey, publicKey);
+}
+
 /**
  * Derives a P-521 key pair from a seed
  * Note: Web Crypto API doesn't natively support deterministic key derivation from seed
  * This is a simplified implementation - for production use a library like @noble/curves
  */
-export async function deriveKeyPairFromSeed(seed: Uint8Array): Promise<P521KeyPair> {
+export async function deriveKeyPairFromSeedOld(seed: Uint8Array): Promise<P521KeyPair> {
   // For now, generate a random key pair
   // True deterministic derivation requires lower-level crypto operations
   // not available in Web Crypto API
@@ -238,4 +292,8 @@ async function deriveAES256KeyFromBits(sharedBytes: Uint8Array): Promise<CryptoK
     false,
     ['encrypt', 'decrypt']
   );
+}
+
+function b64url(buf: Buffer) {
+  return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
