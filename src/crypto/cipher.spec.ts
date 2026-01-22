@@ -2,8 +2,8 @@ import { JsonRpcProvider, Signer } from "ethers";
 import ganache, { Server } from "ganache";
 import assert from "assert";
 import { deriveP521PrivateKeyFromSigner, deriveP521PrivateKeyFromSignerWithCustomChallenge } from "./wallet.js";
-import { encrypt } from "./cipher.js";
-import { stringToUint8Array, uint8ArrayToString } from "./utils.js";
+import { decrypt, encrypt } from "./p521.js";
+import { bytesToString, stringToBytes } from "./utils.js";
 
 let server: Server;
 let signer: Signer;
@@ -46,11 +46,11 @@ describe("Client test", function () {
     assert.notEqual(publicKey1, publicKey2);
 
     //cipher message
-    const encrypted = await encrypt(privateKey1, publicKey2, stringToUint8Array(TEST_MESSAGE));
+    const encrypted = await encrypt(privateKey1, publicKey2, stringToBytes(TEST_MESSAGE));
 
     //decipher message
-    const decryptedBytes = await encrypt(privateKey2, publicKey1, encrypted);
-    const decryptedMessage = uint8ArrayToString(decryptedBytes);
+    const decryptedBytes = await decrypt(privateKey2, publicKey1, encrypted);
+    const decryptedMessage = bytesToString(decryptedBytes);
 
     assert.equal(decryptedMessage, TEST_MESSAGE);
   });

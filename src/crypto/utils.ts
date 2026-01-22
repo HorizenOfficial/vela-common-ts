@@ -4,66 +4,26 @@ export const CHALLENGE = "challenge";
 
 // ---------- HELPER ----------
 
-export function stringToUint8Array(str: string): Uint8Array {
+export function hexToBytes(hex: string): Uint8Array {
+  const cleaned = hex.replace(/^0x/, '').replace(/\s/g, '');
+  const bytes = new Uint8Array(cleaned.length / 2);
+  for (let i = 0; i < cleaned.length; i += 2) {
+    bytes[i / 2] = parseInt(cleaned.substr(i, 2), 16);
+  }
+  return bytes;
+}
+
+export function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+// Helper per convertire stringhe in Uint8Array
+export function stringToBytes(str: string): Uint8Array {
   return new TextEncoder().encode(str);
 }
 
-export function uint8ArrayToString(bytes: Uint8Array): string {
+export function bytesToString(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes);
 }
-
-// ---------- ETHERJS SIGNER FROM BROWSER WALLET ----------
-export async function ethersSignerFromBrowser(): Promise<Signer> {
-  if (!(window as any).ethereum) {
-    throw new Error("wallet not connected");
-  }
-  const ethereum = (window as any).ethereum;
-  const provider = new ethers.BrowserProvider(ethereum);
-  const signer = await provider.getSigner();
-  return signer;
-}
-
-// ---------- P-521 KEY IMPORT ----------
-export async function importPrivateKeyP521(privateKeyBytes: Uint8Array): Promise<CryptoKey> {
-  const { p521 } = await import("@noble/curves/nist.js");
-  const jwk = {
-    kty: "EC",
-    crv: "P-521",
-    d: Buffer.from(privateKeyBytes).toString("base64url"),
-    x: "",
-    y: "",
-    ext: true
-  };
-
-  const pub = p521.getPublicKey(privateKeyBytes);
-  jwk.x = Buffer.from(pub.slice(1, 67)).toString("base64url");
-  jwk.y = Buffer.from(pub.slice(67)).toString("base64url");
-
-  return crypto.subtle.importKey(
-    "jwk",
-    jwk,
-    { name: "ECDH", namedCurve: "P-521" },
-    true,
-    ["deriveBits"]
-  );
-}
-
-export async function importPublicKeyP521(publicKeyBytes: Uint8Array): Promise<CryptoKey> {
-  const jwk = {
-    kty: "EC",
-    crv: "P-521",
-    x: Buffer.from(publicKeyBytes.slice(1, 67)).toString("base64url"),
-    y: Buffer.from(publicKeyBytes.slice(67)).toString("base64url"),
-    ext: true
-  };
-
-  return crypto.subtle.importKey(
-    "jwk",
-    jwk,
-    { name: "ECDH", namedCurve: "P-521" },
-    true,
-    []
-  );
-}
-
-

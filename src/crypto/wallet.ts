@@ -1,14 +1,9 @@
 import { ethers, JsonRpcProvider, Signer } from "ethers";
-import { CHALLENGE, importPrivateKeyP521, importPublicKeyP521 } from "./utils";
-import { createHash } from "crypto";
-
-export interface DerivedP521KeyPair {
-  privateKey: CryptoKey;
-  publicKey: CryptoKey;
-}
+import { CHALLENGE } from "./utils";
+import { deriveKeyPairFromSeed, P521KeyPair } from "./p521";
 
 // KEY DERIVATION
-export async function deriveP521PrivateKeyFromSigner(signer: Signer, useAlternativeSign: boolean): Promise<DerivedP521KeyPair> {
+export async function deriveP521PrivateKeyFromSigner(signer: Signer, useAlternativeSign: boolean): Promise<P521KeyPair> {
   return await deriveP521PrivateKeyFromSignerWithCustomChallenge(signer, CHALLENGE, useAlternativeSign);
 }
 
@@ -16,7 +11,7 @@ export async function deriveP521PrivateKeyFromSignerWithCustomChallenge(
   signer: Signer,
   challenge: string,
   useAlternativeSign: boolean
-): Promise<DerivedP521KeyPair> {
+): Promise<P521KeyPair> {
 
   //sign challenge
   const signature: string = useAlternativeSign && signer.provider instanceof JsonRpcProvider? await _alternativeSign(signer, challenge) : await signer.signMessage(challenge);
@@ -38,7 +33,7 @@ export async function deriveP521PrivateKeyFromSignerWithCustomChallenge(
   const hashBuffer = await crypto.subtle.digest("SHA-512", seed);
   const hash = new Uint8Array(hashBuffer);
 
-  return await deriveP521KeyFromSeed(hash);
+  return await deriveKeyPairFromSeed(hash);
 }
 
 async function _alternativeSign(signer: Signer, message: string): Promise<string> {
@@ -49,19 +44,13 @@ async function _alternativeSign(signer: Signer, message: string): Promise<string
   return await (signer.provider as JsonRpcProvider).send("eth_sign", [await signer.getAddress(), hash]);
 }
 
-export async function deriveP521KeyFromSeed(seed: Uint8Array): Promise<DerivedP521KeyPair> {
-  const { p521 } = await import("@noble/curves/nist.js");
-
-  //seed to 99 bytes required
-  const hash = createHash("sha512").update(seed).digest();
-  const extra = createHash("sha512").update(hash).digest();
-
-  const combined = new Uint8Array([...hash, ...extra]).subarray(0, 99);
-
-  const priv = p521.utils.randomSecretKey(combined);
-  const pub = p521.getPublicKey(priv);
-  return { 
-    privateKey: await importPrivateKeyP521(priv),
-    publicKey: await importPublicKeyP521(pub)
-  };
+// ---------- ETHERJS SIGNER FROM BROWSER WALLET ----------
+export async function ethersSignerFromBrowser(): Promise<Signer> {
+  if (!(window as any).ethereum) {
+    throw new Error("wallet not connected");
+  }
+  const ethereum = (window as any).ethereum;
+  const provider = new ethers.BrowserProvider(ethereum);
+  const signer = await provider.getSigner();
+  return signer;
 }

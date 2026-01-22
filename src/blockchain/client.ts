@@ -2,8 +2,8 @@ import { ContractTransactionResponse } from "ethers";
 import { Signer } from "ethers";
 import { ITeeAuthenticator, ITeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
-import { decrypt } from "../crypto/cipher";
-import { importPublicKeyP521, stringToUint8Array } from "../crypto/utils";
+import { decrypt, importPublicKeyFromHex } from "../crypto/p521";
+import { stringToBytes } from "../crypto/utils";
 
 export enum RequestType {
   DEPLOYAPP = 0,
@@ -59,7 +59,8 @@ export class HorizenPESClient {
 
     //recover decrypt key
     const teePublicKeyString = await this.getTeePublicKey();
-    const teePublicKey = await importPublicKeyP521(stringToUint8Array(teePublicKeyString));
+    const teePublicKey = await importPublicKeyFromHex(teePublicKeyString);
+
     const privateKey = await deriveP521PrivateKeyFromSigner(this.signer, this.useAlternativeSign);
 
     //get UserEvent events from Processor Endpoint
@@ -73,7 +74,7 @@ export class HorizenPESClient {
     const returnEvents: Uint8Array[] = [];
     for(let i = events.length - 1; i >= 0; i--) {
       const event = events[i];
-      const decryptedData: Uint8Array = await decrypt(privateKey.privateKey, teePublicKey, stringToUint8Array(event.args.encryptedData));
+      const decryptedData: Uint8Array = await decrypt(privateKey.privateKey, teePublicKey, stringToBytes(event.args.encryptedData));
       if (filter(decryptedData)) {
         returnEvents.push(decryptedData);
       }
