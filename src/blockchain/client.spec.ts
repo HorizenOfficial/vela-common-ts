@@ -21,7 +21,7 @@ describe("Client test", function () {
   
   before(async () => {
     //launch node
-    server = ganache.server();
+    server = ganache.server({wallet: {seed: "test test test test test test test test test test test junk"}});
     await server.listen(NODE_PORT);
 
     //connect provider

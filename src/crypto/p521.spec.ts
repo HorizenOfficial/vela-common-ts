@@ -12,12 +12,15 @@ const TEST_MESSAGE = "Hello, World!";
 const TEST_DIFFERENT_CHALLENGE = "test challenge 2";
 const NODE_PORT = 9545
 
+const VERIFIED_X = "AHQLV2h6ij_il9rxvKj5AbcZrbfBUQpGBwGNMJ6C0KOtwu4cJUFXMbCtRRQFwBFixmJuhLSHxHYKH6yx4YF92uaN";
+const VERIFIED_Y = "ALZgrC1q7P2zFmjJkraeHeGTB3K_SnOE0VpApxLYIshH7dEOv-yEbHKuZ_zdGiE1PC0-Fq4TudVn8DrbQziLAYlt";
+
 describe("Client test", function () {
   this.timeout(20000);
   
   before(async () => {
     //launch node
-    server = ganache.server();
+    server = ganache.server({wallet: {seed: "test test test test test test test test test test test junk"}});
     await server.listen(NODE_PORT);
 
     //connect provider
@@ -40,6 +43,8 @@ describe("Client test", function () {
 
     assert.equal(extracted1.x, extracted2.x);
     assert.equal(extracted1.y, extracted2.y);
+    assert.equal(extracted1.x, VERIFIED_X);
+    assert.equal(extracted1.y, VERIFIED_Y);
 
     const keyPair3 = await deriveP521PrivateKeyFromSignerWithCustomChallenge(signer, TEST_DIFFERENT_CHALLENGE, true);
     const extracted3 = await crypto.subtle.exportKey("jwk", keyPair3.publicKey);
