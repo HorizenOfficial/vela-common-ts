@@ -25,7 +25,7 @@ export class HorizenPESClient {
     
   }
 
-  async submitRequest(protocolVersion: bigint, applicationId: bigint, requestType: RequestType, payload: Uint8Array, depositAmount: bigint, maxFeeValue: bigint): Promise<ContractTransactionResponse> {
+  async submitRequest(protocolVersion: number, applicationId: number, requestType: RequestType, payload: Uint8Array, depositAmount: bigint, maxFeeValue: bigint): Promise<ContractTransactionResponse> {
     const tx = await this.processorEndpoint.submitRequest(
       protocolVersion,
       applicationId,

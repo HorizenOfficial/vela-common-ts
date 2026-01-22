@@ -1,35 +1,33 @@
 import { JsonRpcProvider } from "ethers";
+import ganache, { Server } from "ganache";
 import assert from "assert";
 import { spawn, ChildProcess } from "child_process";
 import kill from "tree-kill";
-import { HorizenPESClient } from "./client.js";
+import { HorizenPESClient, RequestType } from "./client.js";
 import { AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint__factory } from "../typechain-types/index.js";
 
-let hardhatNode: ChildProcess;
+let server: Server;
 let provider: JsonRpcProvider;
 let client: HorizenPESClient;
 
-
-//const PRIV_KEYS = ["0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d", "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"]
-const TEST_PUBSECP = "0x"
+const TEST_PUBSECP = "0x1234"
+const NODE_PORT = 9545
 
 function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-describe("Hardhat integration", function () {
+describe("Client test", function () {
   this.timeout(20000);
   
   before(async () => {
     //launch node
-    hardhatNode = spawn(
-        "npx hardhat node --port 9545",
-        { shell: true, stdio: "ignore", detached: true }
-    );
+    server = ganache.server();
+    await server.listen(NODE_PORT);
 
     await wait(4000); //wait for node to start
     //connect provider
-    provider = new JsonRpcProvider("http://127.0.0.1:9545");
+    provider = new JsonRpcProvider(`http://127.0.0.1:${NODE_PORT}`);
     await provider.getBlockNumber();
 
     //deploy contracts
@@ -46,15 +44,29 @@ describe("Hardhat integration", function () {
 
   after(async () => {
     //kill node
-    if (!hardhatNode || !hardhatNode.pid) return;
-    kill(hardhatNode.pid, "SIGTERM", (err) => {});
+    await server.close();
   });
 
   // TESTS
-  it("provider risponde", async () => {
+  it("provider is reachable", async () => {
     const block = await provider.getBlockNumber();
     assert.equal(block >= 0, true);
   });
+
+  it("getPublicKey", async () => {
+    const publicKey = await client.getTeePublicKey();
+    assert.equal(publicKey, TEST_PUBSECP);
+  })
+
+  it("submitRequest", async () => {
+    const submitRequestTx = await client.submitRequest(0, 1, RequestType.PROCESS, Uint8Array.from([1, 2, 3]), BigInt(10), BigInt(0));
+    assert.notEqual(submitRequestTx, undefined);
+    assert.notEqual(submitRequestTx.hash, undefined);
+
+    const receipt = await submitRequestTx.wait();
+    assert.notEqual(receipt, undefined);
+  })
+
 
 
 });
