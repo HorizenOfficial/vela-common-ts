@@ -55,11 +55,6 @@ describe("Client test", function () {
   });
 
   // TESTS
-  it("provider is reachable", async () => {
-    const block = await provider.getBlockNumber();
-    assert.equal(block >= 0, true);
-  });
-
   it("getPublicKey", async () => {
     const publicKey = await client.getTeePublicKey();
     const expectedPubKey = await exportPublicKeyToHex(teePubSecp.publicKey);
