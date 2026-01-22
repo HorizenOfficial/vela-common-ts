@@ -87,7 +87,7 @@ export class HorizenPESClient {
       fromBlock
     );
 
-    return await this.decryptAndFilterEvents(events.map(e => stringToBytes(e.args.encryptedData)), eventSubType, filter, stopAtFirst);
+    return await this.decryptAndFilterEvents(events.reverse().map(e => stringToBytes(e.args.encryptedData)), eventSubType, filter, stopAtFirst);
   }
 
   async decryptAndFilterEvents(encryptedDatas: Uint8Array[], eventSubType: string | undefined,filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
@@ -98,15 +98,19 @@ export class HorizenPESClient {
 
     //decrypt and filter
     const returnEvents: Uint8Array[] = [];
-    for(let i = encryptedDatas.length - 1; i >= 0; i--) {
-      const event = encryptedDatas[i];
-      const decryptedData: Uint8Array = await decrypt(privateKey, teePublicKey, stringToBytes(event.toString()));
-      if (filter(decryptedData)) {
-        returnEvents.push(decryptedData);
-      }
-
-      if(returnEvents.length > 0 && stopAtFirst) {
-        return returnEvents;
+    for(const encryptedData of encryptedDatas) {
+      try {
+        //attempt to decrypt
+        const decryptedData = await decrypt(privateKey, teePublicKey, encryptedData);
+        if (filter(decryptedData)) {
+          returnEvents.push(decryptedData);
+        }
+        if(returnEvents.length > 0 && stopAtFirst) {
+          return returnEvents;
+        }
+      } catch (e) {
+        //not intended for this user
+        continue;
       }
     }
     return returnEvents;

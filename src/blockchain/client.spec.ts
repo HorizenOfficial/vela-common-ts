@@ -70,21 +70,26 @@ describe("Client test", function () {
   })
 
   it("getCurrentUserEvents (just decrypting - without retrieving events)", async () => {
-    //submit request
-    const submitResponse = await client.submitRequestAndWaitForRequestId(0, 1, RequestType.PROCESS, Uint8Array.from([1, 2, 3]), BigInt(10), BigInt(0));
-    assert.notEqual(submitResponse.requestId, undefined);
-
     //generate user key
     const userKeyPair = await deriveP521PrivateKeyFromSigner(await provider.getSigner(0), true);
+    //generate another user key
+    const otherUserKeyPair = await deriveP521PrivateKeyFromSigner(await provider.getSigner(1), true);
     //encrypt event
     const eventMessage = "Hello world!";
-    const encrypted = await encrypt(teePubSecp.privateKey, userKeyPair.publicKey, stringToBytes(eventMessage));
+    const correctEvent = await encrypt(teePubSecp.privateKey, userKeyPair.publicKey, stringToBytes(eventMessage));
+    const uncorrectEvent = await encrypt(teePubSecp.privateKey, otherUserKeyPair.publicKey, stringToBytes(eventMessage));
 
     //retrieve and decrypt event
-    const events = await client.decryptAndFilterEvents([encrypted], undefined, (event: Uint8Array) => true, true);
+    let events = await client.decryptAndFilterEvents([uncorrectEvent, correctEvent, correctEvent], undefined, (event: Uint8Array) => true, true); //stop at first
     assert.equal(events.length, 1);
     const decryptedMessage = bytesToString(events[0]);
     assert.equal(decryptedMessage, eventMessage);
+
+    events = await client.decryptAndFilterEvents([uncorrectEvent], undefined, (event: Uint8Array) => true, true); // only uncorrect events
+    assert.equal(events.length, 0);
+
+    events = await client.decryptAndFilterEvents([uncorrectEvent, correctEvent, correctEvent], undefined, (event: Uint8Array) => true, false); //not stop at first
+    assert.equal(events.length, 2);
   });
 
 
