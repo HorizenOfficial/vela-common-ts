@@ -1,43 +1,18 @@
 import { ethers, Signer } from "ethers";
 
-const CHALLENGE = "challenge";
+export const CHALLENGE = "challenge";
 
-export async function deriveP521PrivateKeyFromSigner(signer: Signer): Promise<Uint8Array> {
-  return await deriveP521PrivateKeyFromSignerWithCustomChallenge(signer, CHALLENGE);
+// ---------- HELPER ----------
+
+export function stringToUint8Array(str: string): Uint8Array {
+  return new TextEncoder().encode(str);
 }
 
-export async function deriveP521PrivateKeyFromSignerWithCustomChallenge(
-  signer: Signer,
-  challenge: string
-): Promise<Uint8Array> {
-  if (!(window as any).ethereum) {
-    throw new Error("wallet not connected");
-  }
-
-  //sign challenge
-  const signature: string = await signer.signMessage(challenge);
-
-  const sigHex = signature.startsWith("0x")
-    ? signature.slice(2)
-    : signature;
-
-  const sigBytes = Uint8Array.from(
-    sigHex.match(/.{1,2}/g)!.map(b => parseInt(b, 16))
-  );
-
-  //use signature + challenge as seed to derive private key
-  const challengeBytes = new TextEncoder().encode(challenge);
-  const seed = new Uint8Array(sigBytes.length + challengeBytes.length);
-  seed.set(sigBytes);
-  seed.set(challengeBytes, sigBytes.length);
-
-  const hashBuffer = await crypto.subtle.digest("SHA-512", seed);
-  const hash = new Uint8Array(hashBuffer);
-
-  // private key P-521 ≈ 66 byte
-  return hash.slice(0, 66);
+export function uint8ArrayToString(bytes: Uint8Array): string {
+  return new TextDecoder().decode(bytes);
 }
 
+// ---------- ETHERJS SIGNER FROM BROWSER WALLET ----------
 export async function ethersSignerFromBrowser(): Promise<Signer> {
   if (!(window as any).ethereum) {
     throw new Error("wallet not connected");
@@ -47,3 +22,48 @@ export async function ethersSignerFromBrowser(): Promise<Signer> {
   const signer = await provider.getSigner();
   return signer;
 }
+
+// ---------- P-521 KEY IMPORT ----------
+export async function importPrivateKeyP521(privateKeyBytes: Uint8Array): Promise<CryptoKey> {
+  const { p521 } = await import("@noble/curves/nist.js");
+  const jwk = {
+    kty: "EC",
+    crv: "P-521",
+    d: Buffer.from(privateKeyBytes).toString("base64url"),
+    x: "",
+    y: "",
+    ext: true
+  };
+
+  const pub = p521.getPublicKey(privateKeyBytes);
+  jwk.x = Buffer.from(pub.slice(1, 67)).toString("base64url");
+  jwk.y = Buffer.from(pub.slice(67)).toString("base64url");
+
+  return crypto.subtle.importKey(
+    "jwk",
+    jwk,
+    { name: "ECDH", namedCurve: "P-521" },
+    true,
+    ["deriveBits"]
+  );
+}
+
+export async function importPublicKeyP521(publicKeyBytes: Uint8Array): Promise<CryptoKey> {
+  const jwk = {
+    kty: "EC",
+    crv: "P-521",
+    x: Buffer.from(publicKeyBytes.slice(1, 67)).toString("base64url"),
+    y: Buffer.from(publicKeyBytes.slice(67)).toString("base64url"),
+    ext: true
+  };
+
+  return crypto.subtle.importKey(
+    "jwk",
+    jwk,
+    { name: "ECDH", namedCurve: "P-521" },
+    true,
+    []
+  );
+}
+
+

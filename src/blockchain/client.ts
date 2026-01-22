@@ -1,8 +1,9 @@
-import { Contract, ContractTransactionResponse } from "ethers";
-import { TransactionReceipt } from "ethers";
+import { ContractTransactionResponse } from "ethers";
 import { Signer } from "ethers";
-import { AuthorityRegistry, AuthorityRegistry__factory, ITeeAuthenticator, ITeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types";
-import { deriveP521PrivateKeyFromSigner } from "../crypto/utils";
+import { ITeeAuthenticator, ITeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types";
+import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
+import { decrypt } from "../crypto/cipher";
+import { importPublicKeyP521, stringToUint8Array } from "../crypto/utils";
 
 export enum RequestType {
   DEPLOYAPP = 0,
@@ -12,14 +13,14 @@ export enum RequestType {
 }
 
 export class HorizenPESClient {
-  private authRegistry: AuthorityRegistry;
   private teeAuthenticator: ITeeAuthenticator;
   private processorEndpoint: ProcessorEndpoint;
   private signer: Signer;
+  private useAlternativeSign: boolean;
 
-  constructor(signer: Signer, authRegistryAddress: string, teeAuthenticatorAddress: string, processorEndpointAddress: string) {
+  constructor(signer: Signer, useAlternativeSign: boolean, authRegistryAddress: string, teeAuthenticatorAddress: string, processorEndpointAddress: string) {
     this.signer = signer;
-    this.authRegistry = AuthorityRegistry__factory.connect(authRegistryAddress, signer);
+    this.useAlternativeSign = useAlternativeSign;
     this.teeAuthenticator = ITeeAuthenticator__factory.connect(teeAuthenticatorAddress, signer);
     this.processorEndpoint = ProcessorEndpoint__factory.connect(processorEndpointAddress, signer);
     
@@ -32,7 +33,8 @@ export class HorizenPESClient {
       requestType.valueOf(),
       payload,
       depositAmount,
-      maxFeeValue
+      maxFeeValue,
+      {value: depositAmount}
     );
     return tx;
   }
@@ -56,20 +58,22 @@ export class HorizenPESClient {
     }
 
     //recover decrypt key
-    const teePublicKey = await this.getTeePublicKey();
-    const privateKey = await deriveP521PrivateKeyFromSigner(this.signer);
+    const teePublicKeyString = await this.getTeePublicKey();
+    const teePublicKey = await importPublicKeyP521(stringToUint8Array(teePublicKeyString));
+    const privateKey = await deriveP521PrivateKeyFromSigner(this.signer, this.useAlternativeSign);
 
     //get UserEvent events from Processor Endpoint
     const events = await this.processorEndpoint.queryFilter(
       this.processorEndpoint.filters.UserEvent(eventSubType),
-      fromBlock,
-      toBlock
+      toBlock,
+      fromBlock
     );
 
     //decrypt and filter
     const returnEvents: Uint8Array[] = [];
-    for (const event of events) {
-      const decryptedData: Uint8Array = new Uint8Array(); // TODO decrypt
+    for(let i = events.length - 1; i >= 0; i--) {
+      const event = events[i];
+      const decryptedData: Uint8Array = await decrypt(privateKey.privateKey, teePublicKey, stringToUint8Array(event.args.encryptedData));
       if (filter(decryptedData)) {
         returnEvents.push(decryptedData);
       }

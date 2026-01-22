@@ -6,7 +6,8 @@
     "strict": true,
     "esModuleInterop": true,
     "types": ["node", "mocha"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src", "test"],
   "exclude": ["src/typechain-types"]
