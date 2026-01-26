@@ -88,6 +88,9 @@ describe("CCE Client test", function () {
 
     events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], undefined, (event: Uint8Array) => true, false); //not stop at first
     assert.equal(events.length, 2);
+
+    events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], undefined, (event: Uint8Array) => false, false); //filter returns false
+    assert.equal(events.length, 0);
   });
 
 
