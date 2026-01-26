@@ -15,7 +15,7 @@ const NODE_PORT = 9545
 const VERIFIED_X = "AHQLV2h6ij_il9rxvKj5AbcZrbfBUQpGBwGNMJ6C0KOtwu4cJUFXMbCtRRQFwBFixmJuhLSHxHYKH6yx4YF92uaN";
 const VERIFIED_Y = "ALZgrC1q7P2zFmjJkraeHeGTB3K_SnOE0VpApxLYIshH7dEOv-yEbHKuZ_zdGiE1PC0-Fq4TudVn8DrbQziLAYlt";
 
-describe("Client test", function () {
+describe("P521 test", function () {
   this.timeout(20000);
   
   before(async () => {
