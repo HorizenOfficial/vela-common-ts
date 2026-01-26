@@ -4,4 +4,4 @@ export { bytesToHex, hexToBytes, bytesToString, stringToBytes } from "./crypto/u
 export { encrypt, decrypt, importPublicKeyFromHex } from "./crypto/p521";
 
 //blockchain
-export { HorizenPESClient, RequestType } from "./blockchain/client";
+export { HorizenCCEClient, RequestType } from "./blockchain/client";

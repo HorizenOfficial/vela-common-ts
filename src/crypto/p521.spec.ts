@@ -1,9 +1,9 @@
 import { JsonRpcProvider, Signer } from "ethers";
 import ganache, { Server } from "ganache";
 import assert from "assert";
-import { deriveP521PrivateKeyFromSigner, deriveP521PrivateKeyFromSignerWithCustomChallenge } from "./wallet.js";
-import { decrypt, encrypt } from "./p521.js";
-import { bytesToString, stringToBytes } from "./utils.js";
+import { deriveP521PrivateKeyFromSigner, deriveP521PrivateKeyFromSignerWithCustomChallenge } from "./wallet";
+import { decrypt, encrypt } from "./p521";
+import { bytesToString, stringToBytes } from "./utils";
 
 let server: Server;
 let signer: Signer;

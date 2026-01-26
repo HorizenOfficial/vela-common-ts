@@ -1,22 +1,22 @@
 import { JsonRpcProvider } from "ethers";
 import ganache, { Server } from "ganache";
 import assert from "assert";
-import { HorizenPESClient, RequestType } from "../blockchain/client.js";
-import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types/index.js";
+import { HorizenCCEClient, RequestType } from "../blockchain/client";
+import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types/index";
 import { encrypt, exportPublicKeyToHex, P521KeyPair } from "../crypto/p521.js";
-import { deriveP521PrivateKeyFromSigner, deriveP521PrivateKeyFromSignerWithCustomChallenge } from "../crypto/wallet.js";
-import { bytesToString, stringToBytes } from "../crypto/utils.js";
+import { deriveP521PrivateKeyFromSigner, deriveP521PrivateKeyFromSignerWithCustomChallenge } from "../crypto/wallet";
+import { bytesToString, stringToBytes } from "../crypto/utils";
 
 let server: Server;
 let provider: JsonRpcProvider;
-let client: HorizenPESClient;
+let client: HorizenCCEClient;
 let processorEndpoint: ProcessorEndpoint;
 let authorityRegistry: AuthorityRegistry;
 let teePubSecp: P521KeyPair;
 
 const NODE_PORT = 9545
 
-describe("Client test", function () {
+describe("CCE Client test", function () {
   this.timeout(20000);
   
   before(async () => {
@@ -46,7 +46,7 @@ describe("Client test", function () {
     processorEndpoint = await new ProcessorEndpoint__factory(signer).deploy(teeAuthenticator, authorityRegistry, signer, signer, 0);
     await processorEndpoint.waitForDeployment();
 
-    client = new HorizenPESClient(signer, true, await authorityRegistry.getAddress(), await teeAuthenticator.getAddress(), await processorEndpoint.getAddress());
+    client = new HorizenCCEClient(signer, true, await teeAuthenticator.getAddress(), await processorEndpoint.getAddress());
   });
 
   after(async () => {

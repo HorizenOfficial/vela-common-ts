@@ -19,13 +19,13 @@ export class RequestReceipt {
   ) {}
 }
 
-export class HorizenPESClient {
+export class HorizenCCEClient {
   private teeAuthenticator: ITeeAuthenticator;
   private processorEndpoint: ProcessorEndpoint;
   private signer: Signer;
   private useAlternativeSign: boolean;
 
-  constructor(signer: Signer, useAlternativeSign: boolean, authRegistryAddress: string, teeAuthenticatorAddress: string, processorEndpointAddress: string) {
+  constructor(signer: Signer, useAlternativeSign: boolean, teeAuthenticatorAddress: string, processorEndpointAddress: string) {
     this.signer = signer;
     this.useAlternativeSign = useAlternativeSign;
     this.teeAuthenticator = ITeeAuthenticator__factory.connect(teeAuthenticatorAddress, signer);
