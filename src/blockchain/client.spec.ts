@@ -78,18 +78,18 @@ describe("CCE Client test", function () {
     const incorrectEvent = await encrypt(teePubSecp.privateKey, otherUserKeyPair.publicKey, stringToBytes(eventMessage));
 
     //retrieve and decrypt event
-    let events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], undefined, (event: Uint8Array) => true, true); //stop at first
+    let events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], (event: Uint8Array) => true, true); //stop at first
     assert.equal(events.length, 1);
     const decryptedMessage = bytesToString(events[0]);
     assert.equal(decryptedMessage, eventMessage);
 
-    events = await client.decryptAndFilterEvents([incorrectEvent], undefined, (event: Uint8Array) => true, true); // only incorrect events
+    events = await client.decryptAndFilterEvents([incorrectEvent], (event: Uint8Array) => true, true); // only incorrect events
     assert.equal(events.length, 0);
 
-    events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], undefined, (event: Uint8Array) => true, false); //not stop at first
+    events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], (event: Uint8Array) => true, false); //not stop at first
     assert.equal(events.length, 2);
 
-    events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], undefined, (event: Uint8Array) => false, false); //filter returns false
+    events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], (event: Uint8Array) => false, false); //filter returns false
     assert.equal(events.length, 0);
   });
 

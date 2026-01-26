@@ -116,10 +116,10 @@ export class HorizenCCEClient {
       fromBlock
     );
 
-    return await this.decryptAndFilterEvents(events.reverse().map(e => stringToBytes(e.args.encryptedData)), eventSubType, filter, stopAtFirst);
+    return await this.decryptAndFilterEvents(events.reverse().map(e => stringToBytes(e.args.encryptedData)), filter, stopAtFirst);
   }
 
-  async decryptAndFilterEvents(encryptedDatas: Uint8Array[], eventSubType: string | undefined,filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
+  async decryptAndFilterEvents(encryptedDatas: Uint8Array[] ,filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
     //recover decrypt key
     const teePublicKeyString = await this.getTeePublicKey();
     const teePublicKey = await importPublicKeyFromHex(teePublicKeyString);
