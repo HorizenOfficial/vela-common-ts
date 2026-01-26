@@ -7,7 +7,9 @@
     "esModuleInterop": true,
     "types": ["node", "mocha"],
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "outDir": "dist",
+    "declaration": true
   },
   "include": ["src", "test"],
   "exclude": ["src/typechain-types"]
