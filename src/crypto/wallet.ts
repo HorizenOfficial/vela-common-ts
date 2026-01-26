@@ -1,39 +1,26 @@
 import { ethers, JsonRpcProvider, Signer } from "ethers";
-import { CHALLENGE } from "./utils";
-import { deriveKeyPairFromSeed, P521KeyPair } from "./p521";
+import { CHALLENGE, HKDF_SALT, HKDF_INFO } from "../constants";
+import { deriveKeyPairFromHKDF, P521KeyPair } from "./p521";
+import { hexToBytes } from "./utils";
 
-// KEY DERIVATION
-export async function deriveP521PrivateKeyFromSigner(signer: Signer, useAlternativeSign: boolean): Promise<P521KeyPair> {
-  return await deriveP521PrivateKeyFromSignerWithCustomChallenge(signer, CHALLENGE, useAlternativeSign);
-}
-
-export async function deriveP521PrivateKeyFromSignerWithCustomChallenge(
+// ---------- KEY DERIVATION ----------
+export async function deriveP521PrivateKeyFromSigner(
   signer: Signer,
-  challenge: string,
   useAlternativeSign: boolean
 ): Promise<P521KeyPair> {
+  const address = await signer.getAddress();
+  const messageToSign: string = CHALLENGE + address;
+  
+  // Sign the message
+  const signature: string = useAlternativeSign && signer.provider instanceof JsonRpcProvider
+    ? await _alternativeSign(signer, messageToSign)
+    : await signer.signMessage(messageToSign);
 
-  //sign challenge
-  const signature: string = useAlternativeSign && signer.provider instanceof JsonRpcProvider? await _alternativeSign(signer, challenge) : await signer.signMessage(challenge);
+  // Convert signature hex to bytes
+  const sigBytes = hexToBytes(signature);
 
-  const sigHex = signature.startsWith("0x")
-    ? signature.slice(2)
-    : signature;
-
-  const sigBytes = Uint8Array.from(
-    sigHex.match(/.{1,2}/g)!.map(b => parseInt(b, 16))
-  );
-
-  //use signature + challenge as seed to derive private key
-  const challengeBytes = new TextEncoder().encode(challenge);
-  const seed = new Uint8Array(sigBytes.length + challengeBytes.length);
-  seed.set(sigBytes);
-  seed.set(challengeBytes, sigBytes.length);
-
-  const hashBuffer = await crypto.subtle.digest("SHA-512", seed);
-  const hash = new Uint8Array(hashBuffer);
-
-  return await deriveKeyPairFromSeed(hash);
+  // Derive P521 key pair using HKDF with the signature as IKM
+  return await deriveKeyPairFromHKDF(sigBytes, HKDF_SALT, HKDF_INFO);
 }
 
 async function _alternativeSign(signer: Signer, message: string): Promise<string> {

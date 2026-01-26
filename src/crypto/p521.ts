@@ -59,6 +59,93 @@ export async function deriveKeyPairFromSeed(seed: Uint8Array): Promise<P521KeyPa
     fullPrivateJwk,
     { name: "ECDH", namedCurve: "P-521" },
     true,
+    []
+  );
+
+  const publicKey = await crypto.subtle.importKey(
+    "jwk",
+    publicJwk,
+    { name: "ECDH", namedCurve: "P-521" },
+    true,
+    []
+  );
+
+  return new P521KeyPair(privateKey, publicKey);
+}
+
+/**
+ * Derives a P-521 key pair using HKDF (HMAC-based Key Derivation Function)
+ * The signature is used as the Input Keying Material (IKM)
+ * salt and info are used to separate versions and context
+ */
+export async function deriveKeyPairFromHKDF(
+  ikm: Uint8Array,
+  salt: Uint8Array,
+  info: Uint8Array
+): Promise<P521KeyPair> {
+  // Import IKM as HKDF key
+  const ikmKey = await crypto.subtle.importKey(
+    "raw",
+    ikm as BufferSource,
+    "HKDF",
+    false,
+    ["deriveBits"]
+  );
+
+  // Derive 64 bytes (512 bits) using HKDF
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "HKDF",
+      hash: "SHA-256",
+      salt: salt as BufferSource,
+      info: info as BufferSource,
+    },
+    ikmKey,
+    512
+  );
+
+  // Convert to bytes
+  const derivedBytes = new Uint8Array(derivedBits);
+
+  // Use derived bytes as seed to compute the private key
+  const n = P521.n;
+  const hashHex = bytesToHex(derivedBytes);
+  const d = (BigInt("0x" + hashHex) % (n - BigInt(1))) + BigInt(1);
+
+  // P-521 requires exactly 66 bytes for d, x, y
+  const dBytes = bigIntToUint8Array(d, 66);
+
+  const { x, y } = computePublicKeyFromPrivate(d);
+
+  const xBytes = bigIntToUint8Array(x, 66);
+  const yBytes = bigIntToUint8Array(y, 66);
+
+  const xB64 = uint8ArrayToBase64Url(xBytes);
+  const yB64 = uint8ArrayToBase64Url(yBytes);
+  const dB64 = uint8ArrayToBase64Url(dBytes);
+
+  const fullPrivateJwk: JsonWebKey = {
+    kty: "EC",
+    crv: "P-521",
+    x: xB64,
+    y: yB64,
+    d: dB64,
+    ext: true,
+  };
+
+  const publicJwk: JsonWebKey = {
+    kty: "EC",
+    crv: "P-521",
+    x: xB64,
+    y: yB64,
+    ext: true,
+  };
+
+  const privateKey = await crypto.subtle.importKey(
+    "jwk",
+    fullPrivateJwk,
+    { name: "ECDH", namedCurve: "P-521" },
+    true,
     ["deriveBits", "deriveKey"]
   );
 

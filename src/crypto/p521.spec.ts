@@ -1,19 +1,19 @@
 import { JsonRpcProvider, Signer } from "ethers";
 import ganache, { Server } from "ganache";
 import assert from "assert";
-import { deriveP521PrivateKeyFromSigner, deriveP521PrivateKeyFromSignerWithCustomChallenge } from "./wallet";
+import { deriveP521PrivateKeyFromSigner } from "./wallet";
 import { decrypt, encrypt } from "./p521";
 import { bytesToString, stringToBytes } from "./utils";
 
 let server: Server;
 let signer: Signer;
+let signer2: Signer;
 
 const TEST_MESSAGE = "Hello, World!";
-const TEST_DIFFERENT_CHALLENGE = "test challenge 2";
 const NODE_PORT = 9545
 
-const VERIFIED_X = "AHQLV2h6ij_il9rxvKj5AbcZrbfBUQpGBwGNMJ6C0KOtwu4cJUFXMbCtRRQFwBFixmJuhLSHxHYKH6yx4YF92uaN";
-const VERIFIED_Y = "ALZgrC1q7P2zFmjJkraeHeGTB3K_SnOE0VpApxLYIshH7dEOv-yEbHKuZ_zdGiE1PC0-Fq4TudVn8DrbQziLAYlt";
+const VERIFIED_X = "ALldAg_311Ccj76JdhiMvsp-9W-3Ncj4brkAQBNtsATHLynV5ajbVy2kOFtYcWEAiAiKyxc6Uqv_6MRqDy3jIpsN";
+const VERIFIED_Y = "Ab1QRmdCkdbBEJOT8-DPLcbBIDWhjZtmaPqYxOJnPc-W8sBI3Vo0og4BhcOp0kCIVUWZSZAHfKUyxwY6V2ONAieG";
 
 describe("P521 test", function () {
   this.timeout(20000);
@@ -30,6 +30,7 @@ describe("P521 test", function () {
     const provider = new JsonRpcProvider(`http://127.0.0.1:${NODE_PORT}`);
     await provider.getBlockNumber();
     signer = await provider.getSigner(0);
+    signer2 = await provider.getSigner(1);
   });
 
   after(async () => {
@@ -49,7 +50,7 @@ describe("P521 test", function () {
     assert.equal(extracted1.x, VERIFIED_X);
     assert.equal(extracted1.y, VERIFIED_Y);
 
-    const keyPair3 = await deriveP521PrivateKeyFromSignerWithCustomChallenge(signer, TEST_DIFFERENT_CHALLENGE, true);
+    const keyPair3 = await deriveP521PrivateKeyFromSigner(signer2, true);
     const extracted3 = await crypto.subtle.exportKey("jwk", keyPair3.publicKey);
 
     assert.notEqual(extracted1.x, extracted3.x);
@@ -60,7 +61,7 @@ describe("P521 test", function () {
   it("crypt and decrypt", async () => {
     //derive key from signer
     const keyPair1 = await deriveP521PrivateKeyFromSigner(signer, true);
-    const keyPair2 = await deriveP521PrivateKeyFromSignerWithCustomChallenge(signer, TEST_DIFFERENT_CHALLENGE, true);
+    const keyPair2 = await deriveP521PrivateKeyFromSigner(signer2, true);
 
     assert.notEqual(keyPair1.privateKey, keyPair2.privateKey);
     assert.notEqual(keyPair1.publicKey, keyPair2.publicKey);

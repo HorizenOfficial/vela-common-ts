@@ -4,7 +4,7 @@ import assert from "assert";
 import { HorizenCCEClient, RequestType } from "../blockchain/client";
 import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types/index";
 import { encrypt, exportPublicKeyToHex, P521KeyPair } from "../crypto/p521";
-import { deriveP521PrivateKeyFromSigner, deriveP521PrivateKeyFromSignerWithCustomChallenge } from "../crypto/wallet";
+import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { bytesToString, stringToBytes } from "../crypto/utils";
 
 let server: Server;
@@ -35,7 +35,8 @@ describe("CCE Client test", function () {
 
     //deploy contracts
     const signer = await provider.getSigner(0);
-    teePubSecp = await deriveP521PrivateKeyFromSignerWithCustomChallenge(signer, "tee secp challenge", true);
+    const signer2 = await provider.getSigner(1);
+    teePubSecp = await deriveP521PrivateKeyFromSigner(signer2, true);
     const pubKey = await exportPublicKeyToHex(teePubSecp.publicKey);
 
     const teeAuthenticator = await new MockTeeAuthenticator__factory(signer).deploy(signer, "0x" + pubKey);

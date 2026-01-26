@@ -1,5 +1,3 @@
-export const CHALLENGE = "challenge";
-
 // ---------- HELPER ----------
 
 export function hexToBytes(hex: string): Uint8Array {
