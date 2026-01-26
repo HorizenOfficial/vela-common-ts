@@ -19,7 +19,6 @@ export function bytesToHex(bytes: Uint8Array): string {
     .join('');
 }
 
-// Helper per convertire stringhe in Uint8Array
 export function stringToBytes(str: string): Uint8Array {
   return new TextEncoder().encode(str);
 }
