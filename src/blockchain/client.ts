@@ -67,16 +67,7 @@ export class HorizenCCEClient {
   }
 
   async getCurrentUserEvents(fromBlock: number | undefined, toBlock: number | undefined, eventSubType: string | undefined, filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
-    if (fromBlock == undefined) {
-      //get chain last block
-      const latestBlock = await this.signer.provider!.getBlock("latest");
-      fromBlock = latestBlock ? latestBlock.number : 0;
-    }
-    if(toBlock == undefined) {
-      toBlock = 0; 
-    }
-
-    if(fromBlock < toBlock) {
+    if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
       throw new Error("fromBlock cannot be less than toBlock");
     }
 
