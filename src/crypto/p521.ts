@@ -67,21 +67,6 @@ export async function deriveKeyPairFromSeed(seed: Uint8Array): Promise<P521KeyPa
 }
 
 /**
- * Derives a P-521 key pair from a seed
- * Note: Web Crypto API doesn't natively support deterministic key derivation from seed
- * This is a simplified implementation - for production use a library like @noble/curves
- */
-export async function deriveKeyPairFromSeedOld(seed: Uint8Array): Promise<P521KeyPair> {
-  // For now, generate a random key pair
-  // True deterministic derivation requires lower-level crypto operations
-  // not available in Web Crypto API
-  console.warn('deriveKeyPairFromSeed: Using random generation instead of seed derivation');
-  console.warn('For deterministic derivation, use a library like @noble/curves');
-  
-  return await generateKeyPair();
-}
-
-/**
  * Generates a new P-521 key pair
  */
 export async function generateKeyPair(): Promise<P521KeyPair> {
