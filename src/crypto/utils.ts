@@ -30,24 +30,26 @@ export function bytesToString(bytes: Uint8Array): string {
 }
 
 /**
- * Converts BigInt to Uint8Array with specified length
+ * Converts BigInt to Uint8Array with specified byte length (big-endian)
  */
 export function bigIntToUint8Array(n: bigint, length: number): Uint8Array {
-  const hex = n.toString(16).padStart(length * 2, "0");
   const bytes = new Uint8Array(length);
-  for (let i = 0; i < length; i++) {
-    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  let temp = n;
+  for (let i = length - 1; i >= 0; i--) {
+    bytes[i] = Number(temp & BigInt(0xff));
+    temp >>= BigInt(8);
   }
   return bytes;
 }
 
 /**
- * Converts Uint8Array to base64url string
+ * Converts Uint8Array to base64url string (RFC 4648)
  */
 export function uint8ArrayToBase64Url(bytes: Uint8Array): string {
   let binary = "";
   for (let i = 0; i < bytes.length; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const base64 = btoa(binary);
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
