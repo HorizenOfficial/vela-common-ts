@@ -3,7 +3,7 @@
  * Compatible with Go implementation using NIST P-521 curve and AES-256-GCM
  */
 
-import { bytesToHex, hexToBytes } from "./utils";
+import { bigIntToUint8Array, bytesToHex, hexToBytes } from "./utils";
 
 export class P521KeyPair {
   constructor(
@@ -26,9 +26,9 @@ export async function deriveKeyPairFromSeed(seed: Uint8Array): Promise<P521KeyPa
   const key = ec.keyFromPrivate(d.toString(16), "hex");
   const pub = key.getPublic();
 
-  const x = Buffer.from(pub.getX().toArray("be", 66));
-  const y = Buffer.from(pub.getY().toArray("be", 66));
-  const dBuf = Buffer.from(d.toString(16), "hex");
+  const x = Uint8Array.from(pub.getX().toArray("be", 66));
+  const y = Uint8Array.from(pub.getY().toArray("be", 66));
+  const dBuf = bigIntToUint8Array(d);
 
   const privateJwk: JsonWebKey = {
     kty: "EC",
@@ -237,8 +237,7 @@ export async function decryptWithAES(
  * Derives an AES-256 key from shared secret bits (mimics Go behavior)
  */
 async function deriveAES256KeyFromBits(sharedBytes: Uint8Array): Promise<CryptoKey> {
-  // Convert shared bytes buffer to proper BufferSource
-  const sharedBuffer = sharedBytes.buffer.slice(
+  const sharedBuffer = sharedBytes.slice(
     sharedBytes.byteOffset,
     sharedBytes.byteOffset + sharedBytes.byteLength
   );
@@ -246,7 +245,7 @@ async function deriveAES256KeyFromBits(sharedBytes: Uint8Array): Promise<CryptoK
   // Import shared secret for HKDF
   const importedSecret = await crypto.subtle.importKey(
     'raw',
-    sharedBuffer as BufferSource,
+    sharedBuffer,
     'HKDF',
     false,
     ['deriveKey']
@@ -270,6 +269,8 @@ async function deriveAES256KeyFromBits(sharedBytes: Uint8Array): Promise<CryptoK
   );
 }
 
-function b64url(buf: Buffer) {
-  return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+function b64url(u8: Uint8Array) {
+  var decoder = new TextDecoder('utf8');
+  var b64encoded = btoa(decoder.decode(u8));
+  return b64encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }

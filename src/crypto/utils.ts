@@ -1,5 +1,3 @@
-import { ethers, Signer } from "ethers";
-
 export const CHALLENGE = "challenge";
 
 // ---------- HELPER ----------
@@ -9,7 +7,7 @@ export function hexToBytes(hex: string): Uint8Array {
   if(cleaned.length % 2 != 0) {
     throw new Error(`Invalid hex string (odd length: ${cleaned.length}`);
   }
-  
+
   const bytes = new Uint8Array(cleaned.length / 2);
   for (let i = 0; i < cleaned.length; i += 2) {
     bytes[i / 2] = parseInt(cleaned.substr(i, 2), 16);
@@ -29,4 +27,10 @@ export function stringToBytes(str: string): Uint8Array {
 
 export function bytesToString(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes);
+}
+
+export function bigIntToUint8Array(num: bigint) {
+  const dv = new DataView(new ArrayBuffer(8), 0);
+  dv.setBigUint64(0, num);
+  return new Uint8Array(dv.buffer);
 }
