@@ -3,7 +3,7 @@ import ganache, { Server } from "ganache";
 import assert from "assert";
 import { HorizenCCEClient, RequestType } from "../blockchain/client";
 import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types/index";
-import { encrypt, exportPublicKeyToHex, P521KeyPair } from "../crypto/p521";
+import { decrypt, encrypt, exportPublicKeyToHex, generateKeyPair, importPublicKeyFromHex, P521KeyPair } from "../crypto/p521";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { bytesToString, stringToBytes } from "../crypto/utils";
 
@@ -35,8 +35,7 @@ describe("CCE Client test", function () {
 
     //deploy contracts
     const signer = await provider.getSigner(0);
-    const signer2 = await provider.getSigner(1);
-    teePubSecp = await deriveP521PrivateKeyFromSigner(signer2, true);
+    teePubSecp = await generateKeyPair();
     const pubKey = await exportPublicKeyToHex(teePubSecp.publicKey);
 
     const teeAuthenticator = await new MockTeeAuthenticator__factory(signer).deploy(signer, "0x" + pubKey);
@@ -61,6 +60,17 @@ describe("CCE Client test", function () {
     const expectedPubKey = await exportPublicKeyToHex(teePubSecp.publicKey);
     assert.equal(publicKey, "0x"+expectedPubKey);
   })
+
+  it("encryptForTee", async () => {
+    const message = "Hello world!";
+    const myPubKey = (await client.getSignerKeyPair()).publicKey;
+    
+    const data = stringToBytes(message);
+    const encryptedData = await client.encryptForTee(data);
+    const decryptedData = await decrypt(teePubSecp.privateKey, myPubKey, encryptedData);
+
+    assert.equal(bytesToString(decryptedData), message);
+  });
 
   it("submitRequest", async () => {
     const submitResponse = await client.submitRequestAndWaitForRequestId(0, 1, RequestType.PROCESS, Uint8Array.from([1, 2, 3]), BigInt(10), BigInt(0));

@@ -2,8 +2,8 @@ import { ContractTransactionReceipt, ContractTransactionResponse } from "ethers"
 import { Signer } from "ethers";
 import { ITeeAuthenticator, ITeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
-import { decrypt, importPublicKeyFromHex, P521KeyPair } from "../crypto/p521";
-import { stringToBytes } from "../crypto/utils";
+import { decrypt, encrypt, importPublicKeyFromHex, P521KeyPair } from "../crypto/p521";
+import { bytesToHex, stringToBytes } from "../crypto/utils";
 
 export enum RequestType {
   DEPLOYAPP = 0,
@@ -73,6 +73,13 @@ export class HorizenCCEClient {
 
   async getTeePublicKey(): Promise<string> {
     return await this.teeAuthenticator.getPubSecp521r1();
+  }
+
+  async encryptForTee(data: Uint8Array): Promise<Uint8Array> {
+    const teePublicKeyString = await this.getTeePublicKey();
+    const teePublicKey = await importPublicKeyFromHex(teePublicKeyString);
+    const privateKey = (await this.getSignerKeyPair()).privateKey;
+    return await encrypt(privateKey, teePublicKey, data);
   }
 
   async getRequestCompletedEvent(requestId: string, fromBlock: number | undefined, toBlock: number | undefined): Promise<RequestResult | undefined> {
