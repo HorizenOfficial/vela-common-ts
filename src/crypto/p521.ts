@@ -109,15 +109,6 @@ export async function exportPublicKeyToHex(publicKey: CryptoKey): Promise<string
 }
 
 /**
- * Imports a private key from hex bytes (JWK format required)
- */
-export async function importPrivateKeyFromHex(hexString: string): Promise<CryptoKey> {
-  // Web Crypto API requires JWK format for private key import
-  // This is a limitation - you'll need the full JWK, not just raw bytes
-  throw new Error('Private key import from raw hex not supported by Web Crypto API. Use importPrivateKeyFromJWK instead.');
-}
-
-/**
  * Imports a private key from JWK
  */
 export async function importPrivateKeyFromJWK(jwk: JsonWebKey): Promise<CryptoKey> {
