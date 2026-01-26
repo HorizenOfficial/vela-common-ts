@@ -19,6 +19,15 @@ export class RequestReceipt {
   ) {}
 }
 
+export class RequestResult {
+  constructor(
+    public requestId: string,
+    public status: bigint,
+    public errorCode: bigint | undefined,
+    public errorMessage: string | undefined,
+  ) {}
+}
+
 export class HorizenCCEClient {
   private teeAuthenticator: ITeeAuthenticator;
   private processorEndpoint: ProcessorEndpoint;
@@ -65,6 +74,35 @@ export class HorizenCCEClient {
   async getTeePublicKey(): Promise<string> {
     return await this.teeAuthenticator.getPubSecp521r1();
   }
+
+  async getRequestCompletedEvent(requestId: string, fromBlock: number | undefined, toBlock: number | undefined): Promise<RequestResult | undefined> {
+    if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
+      throw new Error("fromBlock cannot be less than toBlock");
+    }
+    //get RequestCompleted events from Processor Endpoint
+    const events = await this.processorEndpoint.queryFilter(
+      this.processorEndpoint.filters.RequestCompleted(requestId),
+      toBlock,
+      fromBlock
+    );
+
+    const validEvents = events.filter(e => !e.removed)
+
+    if(validEvents.length === 0) {
+      return undefined;
+    }
+    if(validEvents.length > 1) {
+      throw new Error("Multiple RequestCompleted events found for the same requestId");
+    }
+
+    const event = validEvents[0];
+    return new RequestResult(
+      event.args.requestId,
+      event.args.status,
+      event.args.errorCode || undefined,
+      event.args.errorMessage || undefined
+    );
+  };
 
   async getCurrentUserEvents(fromBlock: number | undefined, toBlock: number | undefined, eventSubType: string | undefined, filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
     if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
