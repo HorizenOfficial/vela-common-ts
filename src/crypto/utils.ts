@@ -29,8 +29,25 @@ export function bytesToString(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes);
 }
 
-export function bigIntToUint8Array(num: bigint) {
-  const dv = new DataView(new ArrayBuffer(8), 0);
-  dv.setBigUint64(0, num);
-  return new Uint8Array(dv.buffer);
+/**
+ * Converts BigInt to Uint8Array with specified length
+ */
+export function bigIntToUint8Array(n: bigint, length: number): Uint8Array {
+  const hex = n.toString(16).padStart(length * 2, "0");
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
+}
+
+/**
+ * Converts Uint8Array to base64url string
+ */
+export function uint8ArrayToBase64Url(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
