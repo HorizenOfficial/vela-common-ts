@@ -6,10 +6,17 @@ import { hexToBytes } from "./utils";
 // ---------- KEY DERIVATION ----------
 export async function deriveP521PrivateKeyFromSigner(
   signer: Signer,
-  useAlternativeSign: boolean
+  useAlternativeSign: boolean,
+  challengeOverride?: string | undefined,
+  hdkfSaltOverride?: Uint8Array | undefined,
+  hdkfInfoOverride?: Uint8Array | undefined,
 ): Promise<P521KeyPair> {
+  const challenge = challengeOverride ?? CHALLENGE;
+  const hkdfSalt = hdkfSaltOverride ?? HKDF_SALT;
+  const hkdfInfo = hdkfInfoOverride ?? HKDF_INFO;
+
   const address = await signer.getAddress();
-  const messageToSign: string = CHALLENGE + address;
+  const messageToSign: string = challenge + address;
   
   // Sign the message
   const signature: string = useAlternativeSign && signer.provider instanceof JsonRpcProvider
@@ -20,7 +27,7 @@ export async function deriveP521PrivateKeyFromSigner(
   const sigBytes = hexToBytes(signature);
 
   // Derive P521 key pair using HKDF with the signature as IKM
-  return await deriveKeyPairFromHKDF(sigBytes, HKDF_SALT, HKDF_INFO);
+  return await deriveKeyPairFromHKDF(sigBytes, hkdfSalt, hkdfInfo);
 }
 
 async function _alternativeSign(signer: Signer, message: string): Promise<string> {
