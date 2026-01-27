@@ -3,7 +3,7 @@ import ganache, { Server } from "ganache";
 import assert from "assert";
 import { HorizenCCEClient, RequestType } from "../blockchain/client";
 import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types/index";
-import { decrypt, encrypt, exportPublicKeyToHex, generateKeyPair, importPublicKeyFromHex, P521KeyPair } from "../crypto/p521";
+import { decrypt, encrypt, exportPublicKeyToHex, generateKeyPair, P521KeyPair } from "../crypto/p521";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { bytesToString, stringToBytes } from "../crypto/utils";
 

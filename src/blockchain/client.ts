@@ -3,7 +3,7 @@ import { Signer } from "ethers";
 import { ITeeAuthenticator, ITeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { decrypt, encrypt, importPublicKeyFromHex, P521KeyPair } from "../crypto/p521";
-import { bytesToHex, stringToBytes } from "../crypto/utils";
+import { stringToBytes } from "../crypto/utils";
 
 export enum RequestType {
   DEPLOYAPP = 0,
