@@ -8,12 +8,12 @@ export async function deriveP521PrivateKeyFromSigner(
   signer: Signer,
   useAlternativeSign: boolean,
   challengeOverride?: string | undefined,
-  hdkfSaltOverride?: Uint8Array | undefined,
-  hdkfInfoOverride?: Uint8Array | undefined,
+  hkdfSaltOverride?: Uint8Array | undefined,
+  hkdfInfoOverride?: Uint8Array | undefined,
 ): Promise<P521KeyPair> {
   const challenge = challengeOverride ?? CHALLENGE;
-  const hkdfSalt = hdkfSaltOverride ?? HKDF_SALT;
-  const hkdfInfo = hdkfInfoOverride ?? HKDF_INFO;
+  const hkdfSalt = hkdfSaltOverride ?? HKDF_SALT;
+  const hkdfInfo = hkdfInfoOverride ?? HKDF_INFO;
 
   const address = await signer.getAddress();
   const messageToSign: string = challenge + address;
