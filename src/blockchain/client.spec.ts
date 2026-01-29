@@ -5,7 +5,9 @@ import { HorizenCCEClient, RequestType } from "../blockchain/client";
 import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types/index";
 import { decrypt, encrypt, exportPublicKeyToHex, generateKeyPair, P521KeyPair } from "../crypto/p521";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
-import { bytesToString, stringToBytes } from "../crypto/utils";
+import { bytesToHex, bytesToString, stringToBytes } from "../crypto/utils";
+import { UserEventEvent } from "../typechain-types/contracts/ProcessorEndpoint";
+import { TypedContractEvent, TypedEventLog } from "../typechain-types/common";
 
 let server: Server;
 let provider: JsonRpcProvider;
@@ -85,24 +87,40 @@ describe("CCE Client test", function () {
     const otherUserKeyPair = await deriveP521PrivateKeyFromSigner(await provider.getSigner(1), true);
     //encrypt event
     const eventMessage = "Hello world!";
-    const correctEvent = await encrypt(teePubSecp.privateKey, userKeyPair.publicKey, stringToBytes(eventMessage));
-    const incorrectEvent = await encrypt(teePubSecp.privateKey, otherUserKeyPair.publicKey, stringToBytes(eventMessage));
+    const correctEncryptedData = await encrypt(teePubSecp.privateKey, userKeyPair.publicKey, stringToBytes(eventMessage));
+    const incorrectEncryptedData = await encrypt(teePubSecp.privateKey, otherUserKeyPair.publicKey, stringToBytes(eventMessage));
+
+    const correctEvent = createEvent(correctEncryptedData);
+    const incorrectEvent = createEvent(incorrectEncryptedData);
+
 
     //retrieve and decrypt event
-    let events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], (event: Uint8Array) => true, true); //stop at first
+    let events = await client.decryptAndFilterEvents([correctEvent, correctEvent, incorrectEvent], (Uint8Array) => true, true); //stop at first
     assert.equal(events.length, 1);
     const decryptedMessage = bytesToString(events[0]);
     assert.equal(decryptedMessage, eventMessage);
 
-    events = await client.decryptAndFilterEvents([incorrectEvent], (event: Uint8Array) => true, true); // only incorrect events
+    events = await client.decryptAndFilterEvents([incorrectEvent], (Uint8Array) => true, true); // only incorrect events
     assert.equal(events.length, 0);
 
-    events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], (event: Uint8Array) => true, false); //not stop at first
+    events = await client.decryptAndFilterEvents([correctEvent, correctEvent, incorrectEvent], (Uint8Array) => true, false); //not stop at first
     assert.equal(events.length, 2);
 
-    events = await client.decryptAndFilterEvents([incorrectEvent, correctEvent, correctEvent], (event: Uint8Array) => false, false); //filter returns false
+    events = await client.decryptAndFilterEvents([correctEvent, correctEvent, incorrectEvent], (Uint8Array) => false, false); //filter returns false
     assert.equal(events.length, 0);
   });
+
+  function createEvent(encryptedData: Uint8Array): TypedEventLog<TypedContractEvent<UserEventEvent.InputTuple, UserEventEvent.OutputTuple, UserEventEvent.OutputObject>> {
+    return {
+      args: {
+        applicationId: BigInt(0),
+        eventSubType: "subtype1",
+        encryptedData: bytesToHex(encryptedData),
+      },
+      blockHash: "",
+      blockNumber: 0,
+    } as any as TypedEventLog<TypedContractEvent<UserEventEvent.InputTuple, UserEventEvent.OutputTuple, UserEventEvent.OutputObject>>;
+  }
 
 
 });

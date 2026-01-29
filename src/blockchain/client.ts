@@ -3,7 +3,9 @@ import { Signer } from "ethers";
 import { ITeeAuthenticator, ITeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { decrypt, encrypt, importPublicKeyFromHex, P521KeyPair } from "../crypto/p521";
-import { stringToBytes } from "../crypto/utils";
+import { hexToBytes } from "../crypto/utils";
+import { TypedContractEvent, TypedEventLog } from "../typechain-types/common";
+import { UserEventEvent } from "../typechain-types/contracts/ProcessorEndpoint";
 
 export enum RequestType {
   DEPLOYAPP = 0,
@@ -123,10 +125,10 @@ export class HorizenCCEClient {
       fromBlock
     );
 
-    return await this.decryptAndFilterEvents(events.reverse().map(e => stringToBytes(e.args.encryptedData)), filter, stopAtFirst);
+    return await this.decryptAndFilterEvents(events, filter, stopAtFirst);
   }
 
-  async decryptAndFilterEvents(encryptedDatas: Uint8Array[] ,filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
+  async decryptAndFilterEvents(events: TypedEventLog<TypedContractEvent<UserEventEvent.InputTuple, UserEventEvent.OutputTuple, UserEventEvent.OutputObject>>[], filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
     //recover decrypt key
     const teePublicKeyString = await this.getTeePublicKey();
     const teePublicKey = await importPublicKeyFromHex(teePublicKeyString);
@@ -134,9 +136,10 @@ export class HorizenCCEClient {
 
     //decrypt and filter
     const returnEvents: Uint8Array[] = [];
-    for(const encryptedData of encryptedDatas) {
+    for(let i = events.length ; i >= 0; i--) {
       try {
         //attempt to decrypt
+        const encryptedData = hexToBytes(events[i].args.encryptedData);
         const decryptedData = await decrypt(privateKey, teePublicKey, encryptedData);
         if (filter(decryptedData)) {
           returnEvents.push(decryptedData);
