@@ -2,8 +2,11 @@
  * P-521 ECDH Encryption/Decryption Library
  * Browser-compatible using Web Crypto API
  * Compatible with Go implementation using NIST P-521 curve and AES-256-GCM
+ *
+ * Uses @noble/curves for elliptic curve operations (audited, production-ready library)
  */
 
+import { p521 } from '@noble/curves/nist.js';
 import { bigIntToUint8Array, bytesToHex, hexToBytes, uint8ArrayToBase64Url } from "./utils";
 
 export class P521KeyPair {
@@ -15,15 +18,40 @@ export class P521KeyPair {
 
 /**
  * Derives a P-521 key pair from a seed (browser-compatible)
- * Uses SHA-512 via Web Crypto API
+ * Uses SHA-512 via Web Crypto API with rejection sampling to avoid modulo bias
+ *
+ * WARNING: This function uses rejection sampling which is not constant-time.
+ * It may leak information about the private key through side-channel timing attacks.
  */
 export async function deriveKeyPairFromSeed(seed: Uint8Array): Promise<P521KeyPair> {
-  const hashBuffer = await crypto.subtle.digest("SHA-512", seed as BufferSource);
-  const hash = new Uint8Array(hashBuffer);
+  const n = p521.Point.Fn.ORDER;
+  let d: bigint;
+  let counter = 0;
 
-  const n = P521.n;
-  const hashHex = bytesToHex(hash);
-  const d = (BigInt("0x" + hashHex) % (n - BigInt(1))) + BigInt(1);
+  // Rejection sampling to avoid modulo bias
+  // Keep deriving until we get a value in the valid range [1, n-1]
+  while (true) {
+    // Append counter to seed to get different values on each iteration
+    const counterBytes = new Uint8Array(4);
+    new DataView(counterBytes.buffer).setUint32(0, counter, false);
+
+    const input = new Uint8Array(seed.length + counterBytes.length);
+    input.set(seed, 0);
+    input.set(counterBytes, seed.length);
+
+    const hashBuffer = await crypto.subtle.digest("SHA-512", input as BufferSource);
+    const hash = new Uint8Array(hashBuffer);
+    const hashHex = bytesToHex(hash);
+    const candidate = BigInt("0x" + hashHex);
+
+    // Accept if candidate is in valid range [1, n-1]
+    if (candidate > BigInt(0) && candidate < n) {
+      d = candidate;
+      break;
+    }
+
+    counter++;
+  }
 
   // P-521 requires exactly 66 bytes for d, x, y
   const dBytes = bigIntToUint8Array(d, 66);
@@ -77,40 +105,68 @@ export async function deriveKeyPairFromSeed(seed: Uint8Array): Promise<P521KeyPa
  * Derives a P-521 key pair using HKDF (HMAC-based Key Derivation Function)
  * The signature is used as the Input Keying Material (IKM)
  * salt and info are used to separate versions and context
+ *
+ * IMPORTANT SECURITY NOTES:
+ * 1. This function uses rejection sampling which is not constant-time.
+ *    It may leak information about the private key through side-channel timing attacks.
+ * 2. The derived bits only have ~256 bits of entropy (not 512), because the IKM
+ *    is typically derived from an ECDSA signature which only has ~256 bits of entropy.
  */
 export async function deriveKeyPairFromHKDF(
   ikm: Uint8Array,
   salt: Uint8Array,
   info: Uint8Array
 ): Promise<P521KeyPair> {
-  // Import IKM as HKDF key
-  const ikmKey = await crypto.subtle.importKey(
-    "raw",
-    ikm as BufferSource,
-    "HKDF",
-    false,
-    ["deriveBits"]
-  );
+  const n = p521.Point.Fn.ORDER;
+  let d: bigint;
+  let counter = 0;
 
-  // Derive 64 bytes (512 bits) using HKDF
-  const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: "HKDF",
-      hash: "SHA-256",
-      salt: salt as BufferSource,
-      info: info as BufferSource,
-    },
-    ikmKey,
-    512
-  );
+  // Rejection sampling to avoid modulo bias
+  // Keep deriving until we get a value in the valid range [1, n-1]
+  while (true) {
+    // Append counter to salt to get different values on each iteration
+    const counterBytes = new Uint8Array(4);
+    new DataView(counterBytes.buffer).setUint32(0, counter, false);
 
-  // Convert to bytes
-  const derivedBytes = new Uint8Array(derivedBits);
+    const saltWithCounter = new Uint8Array(salt.length + counterBytes.length);
+    saltWithCounter.set(salt, 0);
+    saltWithCounter.set(counterBytes, salt.length);
 
-  // Use derived bytes as seed to compute the private key
-  const n = P521.n;
-  const hashHex = bytesToHex(derivedBytes);
-  const d = (BigInt("0x" + hashHex) % (n - BigInt(1))) + BigInt(1);
+    // Import IKM as HKDF key
+    const ikmKey = await crypto.subtle.importKey(
+      "raw",
+      ikm as BufferSource,
+      "HKDF",
+      false,
+      ["deriveBits"]
+    );
+
+    // Derive 64 bytes (512 bits) using HKDF
+    // Note: Despite deriving 512 bits, the effective entropy is limited by the IKM (~256 bits)
+    const derivedBits = await crypto.subtle.deriveBits(
+      {
+        name: "HKDF",
+        hash: "SHA-256",
+        salt: saltWithCounter as BufferSource,
+        info: info as BufferSource,
+      },
+      ikmKey,
+      512
+    );
+
+    // Convert to bytes
+    const derivedBytes = new Uint8Array(derivedBits);
+    const hashHex = bytesToHex(derivedBytes);
+    const candidate = BigInt("0x" + hashHex);
+
+    // Accept if candidate is in valid range [1, n-1]
+    if (candidate > BigInt(0) && candidate < n) {
+      d = candidate;
+      break;
+    }
+
+    counter++;
+  }
 
   // P-521 requires exactly 66 bytes for d, x, y
   const dBytes = bigIntToUint8Array(d, 66);
@@ -161,96 +217,11 @@ export async function deriveKeyPairFromHKDF(
 }
 
 /**
- * P-521 curve parameters
+ * Computes the public key from a private key using @noble/curves
  */
-const P521 = {
-  // p = 2^521 - 1
-  p: BigInt(
-    "0x01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-  ),
-  a: BigInt(-3),
-  b: BigInt(
-    "0x0051953eb9618e1c9a1f929a21a0b68540eea2da725b99b315f3b8b489918ef109e156193951ec7e937b1652c0bd3bb1bf073573df883d2c34f1ef451fd46b503f00"
-  ),
-  Gx: BigInt(
-    "0x00c6858e06b70404e9cd9e3ecb662395b4429c648139053fb521f828af606b4d3dbaa14b5e77efe75928fe1dc127a2ffa8de3348b3c1856a429bf97e7e31c2e5bd66"
-  ),
-  Gy: BigInt(
-    "0x0118 39296a789a3bc0045c8a5fb42c7d1bd998f54449579b446817afbd17273e662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650".replace(/\s/g, "")
-  ),
-  n: BigInt(
-    "0x01fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa51868783bf2f966b7fcc0148f709a5d03bb5c9b8899c47aebb6fb71e91386409"
-  ),
-};
-
-function mod(a: bigint, m: bigint): bigint {
-  return ((a % m) + m) % m;
-}
-
-function modInverse(a: bigint, m: bigint): bigint {
-  let [old_r, r] = [mod(a, m), m];
-  let [old_s, s] = [BigInt(1), BigInt(0)];
-  while (r !== BigInt(0)) {
-    const q = old_r / r;
-    [old_r, r] = [r, old_r - q * r];
-    [old_s, s] = [s, old_s - q * s];
-  }
-  return mod(old_s, m);
-}
-
-interface Point {
-  x: bigint;
-  y: bigint;
-  isInfinity?: boolean;
-}
-
-const INFINITY: Point = { x: BigInt(0), y: BigInt(0), isInfinity: true };
-
-function pointAdd(p1: Point, p2: Point): Point {
-  if (p1.isInfinity) return p2;
-  if (p2.isInfinity) return p1;
-
-  const { p, a } = P521;
-
-  if (p1.x === p2.x) {
-    if (mod(p1.y + p2.y, p) === BigInt(0)) return INFINITY;
-    // Point doubling
-    const num = mod(BigInt(3) * p1.x * p1.x + a, p);
-    const den = modInverse(BigInt(2) * p1.y, p);
-    const m = mod(num * den, p);
-    const x3 = mod(m * m - BigInt(2) * p1.x, p);
-    const y3 = mod(m * (p1.x - x3) - p1.y, p);
-    return { x: x3, y: y3 };
-  }
-
-  // Point addition
-  const num = mod(p2.y - p1.y, p);
-  const den = modInverse(mod(p2.x - p1.x, p), p);
-  const m = mod(num * den, p);
-  const x3 = mod(m * m - p1.x - p2.x, p);
-  const y3 = mod(m * (p1.x - x3) - p1.y, p);
-  return { x: x3, y: y3 };
-}
-
-function pointMul(k: bigint, point: Point): Point {
-  let result: Point = INFINITY;
-  let addend: Point = { x: point.x, y: point.y };
-
-  let scalar = k;
-  while (scalar > BigInt(0)) {
-    if (scalar & BigInt(1)) {
-      result = pointAdd(result, addend);
-    }
-    addend = pointAdd(addend, addend);
-    scalar >>= BigInt(1);
-  }
-  return result;
-}
-
 function computePublicKeyFromPrivate(d: bigint): { x: bigint; y: bigint } {
-  const G: Point = { x: P521.Gx, y: P521.Gy };
-  const pub = pointMul(d, G);
-  return { x: pub.x, y: pub.y };
+  const point = p521.Point.BASE.multiply(d);
+  return { x: point.x, y: point.y };
 }
 
 /**

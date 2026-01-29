@@ -12,8 +12,8 @@ let signer2: Signer;
 const TEST_MESSAGE = "Hello, World!";
 const NODE_PORT = 9545
 
-const VERIFIED_X = "ALldAg_311Ccj76JdhiMvsp-9W-3Ncj4brkAQBNtsATHLynV5ajbVy2kOFtYcWEAiAiKyxc6Uqv_6MRqDy3jIpsN";
-const VERIFIED_Y = "Ab1QRmdCkdbBEJOT8-DPLcbBIDWhjZtmaPqYxOJnPc-W8sBI3Vo0og4BhcOp0kCIVUWZSZAHfKUyxwY6V2ONAieG";
+const VERIFIED_X = "AbOeZFV64oi3mjH7sAuC0887JSFk6ndcgG2EXmT9nMZCxiUwucJdmKSGHX_E2PrvhDNOIsSmLq26W_I3r0OgpEnu";
+const VERIFIED_Y = "AAxyKLjUdolIHVzX5bCWsZ31Emkm8FnvJjbh6CaAK46wdh5RhBjr_1G4b05kVGWHTeQKVil3TlImiQqlhuBBEvyI";
 
 describe("P521 test", function () {
   this.timeout(20000);
