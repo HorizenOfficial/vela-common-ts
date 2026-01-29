@@ -136,7 +136,7 @@ export class HorizenCCEClient {
 
     //decrypt and filter
     const returnEvents: Uint8Array[] = [];
-    for(let i = events.length ; i >= 0; i--) {
+    for(let i = events.length - 1; i >= 0; i--) {
       try {
         //attempt to decrypt
         const encryptedData = hexToBytes(events[i].args.encryptedData);
