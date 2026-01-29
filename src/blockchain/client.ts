@@ -54,7 +54,7 @@ export class HorizenCCEClient {
       payload,
       depositAmount,
       maxFeeValue,
-      {value: depositAmount}
+      {value: depositAmount + maxFeeValue}
     );
     return tx;
   }
@@ -111,14 +111,14 @@ export class HorizenCCEClient {
     );
   };
 
-  async getCurrentUserEvents(fromBlock: number | undefined, toBlock: number | undefined, eventSubType: string | undefined, filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
+  async getCurrentUserEvents(fromBlock: number | undefined, toBlock: number | undefined, applicationId: string, eventSubType: string | undefined, filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
     if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
       throw new Error("fromBlock cannot be less than toBlock");
     }
 
     //get UserEvent events from Processor Endpoint
     const events = await this.processorEndpoint.queryFilter(
-      this.processorEndpoint.filters.UserEvent(eventSubType),
+      this.processorEndpoint.filters.UserEvent(applicationId, undefined, eventSubType, undefined),
       toBlock,
       fromBlock
     );
@@ -140,9 +140,7 @@ export class HorizenCCEClient {
         const decryptedData = await decrypt(privateKey, teePublicKey, encryptedData);
         if (filter(decryptedData)) {
           returnEvents.push(decryptedData);
-        }
-        if(returnEvents.length > 0 && stopAtFirst) {
-          return returnEvents;
+          if(stopAtFirst) return returnEvents;
         }
       } catch (e) {
         //not intended for this user

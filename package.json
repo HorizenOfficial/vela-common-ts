@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "npx esbuild src/index.ts --bundle --platform=browser --format=esm --target=es2020 --outdir=dist --sourcemap",
+    "check": "tsc --noEmit",
     "test": "mocha -r ts-node/register src/**/*.spec.ts"
   },
   "devDependencies": {
