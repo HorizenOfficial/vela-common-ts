@@ -15,7 +15,7 @@ npm install horizen-cce-common-ts ethers
 npm run build
 ```
 
-This will build a browser-friendly version of the lib in the folder: dist/index.js
+This will build a browser-friendly version of the lib in the path: dist/index.js
 
 
 ## Quick Start
