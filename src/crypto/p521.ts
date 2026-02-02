@@ -151,11 +151,14 @@ export async function deriveKeyPairFromHKDF(
         info: info as BufferSource,
       },
       ikmKey,
-      512
+      528
     );
 
     // Convert to bytes
     const derivedBytes = new Uint8Array(derivedBits);
+    // Set the 7 most significant bits to 0 to get a uniformly distributed 521-bit value.
+    // This greatly reduces the rejection rate since P-521 order is very close to 2^521.
+    derivedBytes[0] &= 0x01;
     const hashHex = bytesToHex(derivedBytes);
     const candidate = BigInt("0x" + hashHex);
 
