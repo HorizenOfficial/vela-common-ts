@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npx esbuild src/index.ts --bundle --platform=browser --format=esm --target=es2020 --outdir=dist --sourcemap",
     "check": "tsc --noEmit",
-    "test": "mocha -r ts-node/register src/**/*.spec.ts"
+    "test": "node --import tsx node_modules/.bin/mocha 'src/**/*.spec.ts'"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^4.0.4",
@@ -21,6 +21,7 @@
     "mocha": "^11.7.5",
     "tree-kill": "^1.2.2",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
