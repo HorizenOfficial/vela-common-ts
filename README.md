@@ -1,6 +1,7 @@
 # horizen-cce-common-ts
 
-TypeScript library for interacting with Horizen CCE (Confidential Computing Environment) smart contracts. Provides P-521 ECDH encryption and a blockchain client optimized for browser applications.
+TypeScript library for interacting with Horizen CCE (Confidential Computing Environment) smart contracts. <br>
+Provides P-521 ECDH encryption and a blockchain client optimized for browser applications.
 
 ## Installation
 
@@ -9,6 +10,13 @@ npm install horizen-cce-common-ts ethers
 ```
 
 > **Note:** `ethers` v6 is a peer dependency and must be installed separately.
+
+```bash
+npm run build
+```
+
+This will build a browser-friendly version of the lib in the folder: dist/index.js
+
 
 ## Quick Start
 
