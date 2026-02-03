@@ -1,0 +1,66 @@
+{
+  "name": "horizen-cce-common-ts",
+  "version": "0.1.0",
+  "description": "TypeScript library for interacting with Horizen CCE (Confidential Computing Environment) smart contracts. Provides P-521 ECDH encryption and blockchain client for browser applications.",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "npm run build:bundle && npm run build:types",
+    "build:bundle": "esbuild src/index.ts --bundle --platform=browser --format=esm --target=es2020 --outdir=dist --sourcemap",
+    "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist",
+    "check": "tsc --noEmit",
+    "test": "node --import tsx node_modules/.bin/mocha 'src/**/*.spec.ts'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HorizenOfficial/horizen-cce-common-ts.git"
+  },
+  "keywords": [
+    "horizen",
+    "cce",
+    "confidential-computing",
+    "ecdh",
+    "p521",
+    "encryption",
+    "blockchain",
+    "ethereum",
+    "web3"
+  ],
+  "author": "Horizen",
+  "peerDependencies": {
+    "ethers": "^6.0.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^4.0.4",
+    "@types/chai": "^5.2.3",
+    "@types/elliptic": "^6.4.18",
+    "@types/mocha": "^10.0.10",
+    "chai": "^6.2.2",
+    "ethers": "^6.16.0",
+    "ganache": "^7.9.2",
+    "hardhat": "^3.1.5",
+    "mocha": "^11.7.5",
+    "tree-kill": "^1.2.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.0.1",
+    "axios": "^1.13.2",
+    "elliptic": "^6.6.1"
+  }
+}
