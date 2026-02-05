@@ -21,7 +21,7 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from "../common";
+} from "../../common";
 
 export declare namespace Structs {
   export type PendingRequestStruct = {
@@ -69,37 +69,19 @@ export declare namespace Structs {
   ] & { receiver: string; amount: bigint };
 }
 
-export interface ProcessorEndpointInterface extends Interface {
+export interface IProcessorEndpointInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | "ADMIN"
-      | "APPLICATION_ID"
-      | "DEFAULT_ADMIN_ROLE"
-      | "PROTOCOL_VERSION"
-      | "UPDATE_STATUS_ROLE"
-      | "authorityRegistry"
-      | "feeCollector"
       | "generateRequestId"
       | "getNextPendingRequest"
       | "getPendingRequests"
       | "getPendingRequestsPage"
       | "getPendingRequestsSize"
-      | "getRoleAdmin"
-      | "grantRole"
-      | "hasRole"
       | "isCurrentPendingRequest"
       | "markRequestCompleted"
       | "markRequestFailed"
-      | "maxQueueSize"
-      | "minFeePerRequest"
-      | "renounceRole"
-      | "requestById"
-      | "revokeRole"
-      | "stateRoot"
       | "stateUpdate"
       | "submitRequest"
-      | "supportsInterface"
-      | "teeAuthenticator"
       | "updateFeeCollector"
       | "updateQueueThreshold"
   ): FunctionFragment;
@@ -111,39 +93,11 @@ export interface ProcessorEndpointInterface extends Interface {
       | "Refund"
       | "RequestCompleted"
       | "RequestSubmitted"
-      | "RoleAdminChanged"
-      | "RoleGranted"
-      | "RoleRevoked"
       | "StateRootUpdate"
       | "UserEvent"
       | "Withdrawal"
   ): EventFragment;
 
-  encodeFunctionData(functionFragment: "ADMIN", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "APPLICATION_ID",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "DEFAULT_ADMIN_ROLE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "PROTOCOL_VERSION",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "UPDATE_STATUS_ROLE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "authorityRegistry",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "feeCollector",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "generateRequestId",
     values: [
@@ -172,18 +126,6 @@ export interface ProcessorEndpointInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getRoleAdmin",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "grantRole",
-    values: [BytesLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "hasRole",
-    values: [BytesLike, AddressLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "isCurrentPendingRequest",
     values: [BytesLike]
   ): string;
@@ -195,27 +137,6 @@ export interface ProcessorEndpointInterface extends Interface {
     functionFragment: "markRequestFailed",
     values: [BytesLike, BigNumberish, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "maxQueueSize",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "minFeePerRequest",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceRole",
-    values: [BytesLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "requestById",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "revokeRole",
-    values: [BytesLike, AddressLike]
-  ): string;
-  encodeFunctionData(functionFragment: "stateRoot", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "stateUpdate",
     values: [
@@ -243,14 +164,6 @@ export interface ProcessorEndpointInterface extends Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "supportsInterface",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "teeAuthenticator",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "updateFeeCollector",
     values: [AddressLike]
   ): string;
@@ -259,31 +172,6 @@ export interface ProcessorEndpointInterface extends Interface {
     values: [BigNumberish]
   ): string;
 
-  decodeFunctionResult(functionFragment: "ADMIN", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "APPLICATION_ID",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "DEFAULT_ADMIN_ROLE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "PROTOCOL_VERSION",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "UPDATE_STATUS_ROLE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "authorityRegistry",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "feeCollector",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "generateRequestId",
     data: BytesLike
@@ -305,12 +193,6 @@ export interface ProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getRoleAdmin",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
-  decodeFunctionResult(
     functionFragment: "isCurrentPendingRequest",
     data: BytesLike
   ): Result;
@@ -323,37 +205,11 @@ export interface ProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "maxQueueSize",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "minFeePerRequest",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceRole",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "requestById",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "stateRoot", data: BytesLike): Result;
-  decodeFunctionResult(
     functionFragment: "stateUpdate",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "submitRequest",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "supportsInterface",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "teeAuthenticator",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -456,64 +312,6 @@ export namespace RequestSubmittedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace RoleAdminChangedEvent {
-  export type InputTuple = [
-    role: BytesLike,
-    previousAdminRole: BytesLike,
-    newAdminRole: BytesLike
-  ];
-  export type OutputTuple = [
-    role: string,
-    previousAdminRole: string,
-    newAdminRole: string
-  ];
-  export interface OutputObject {
-    role: string;
-    previousAdminRole: string;
-    newAdminRole: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace RoleGrantedEvent {
-  export type InputTuple = [
-    role: BytesLike,
-    account: AddressLike,
-    sender: AddressLike
-  ];
-  export type OutputTuple = [role: string, account: string, sender: string];
-  export interface OutputObject {
-    role: string;
-    account: string;
-    sender: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace RoleRevokedEvent {
-  export type InputTuple = [
-    role: BytesLike,
-    account: AddressLike,
-    sender: AddressLike
-  ];
-  export type OutputTuple = [role: string, account: string, sender: string];
-  export interface OutputObject {
-    role: string;
-    account: string;
-    sender: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
 export namespace StateRootUpdateEvent {
   export type InputTuple = [
     applicationId: BigNumberish,
@@ -589,11 +387,11 @@ export namespace WithdrawalEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export interface ProcessorEndpoint extends BaseContract {
-  connect(runner?: ContractRunner | null): ProcessorEndpoint;
+export interface IProcessorEndpoint extends BaseContract {
+  connect(runner?: ContractRunner | null): IProcessorEndpoint;
   waitForDeployment(): Promise<this>;
 
-  interface: ProcessorEndpointInterface;
+  interface: IProcessorEndpointInterface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -632,20 +430,6 @@ export interface ProcessorEndpoint extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  ADMIN: TypedContractMethod<[], [string], "view">;
-
-  APPLICATION_ID: TypedContractMethod<[], [bigint], "view">;
-
-  DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
-
-  PROTOCOL_VERSION: TypedContractMethod<[], [bigint], "view">;
-
-  UPDATE_STATUS_ROLE: TypedContractMethod<[], [string], "view">;
-
-  authorityRegistry: TypedContractMethod<[], [string], "view">;
-
-  feeCollector: TypedContractMethod<[], [string], "view">;
-
   generateRequestId: TypedContractMethod<
     [
       sender: AddressLike,
@@ -661,11 +445,7 @@ export interface ProcessorEndpoint extends BaseContract {
 
   getNextPendingRequest: TypedContractMethod<
     [],
-    [
-      [Structs.PendingRequestStructOutput, string, boolean] & {
-        success: boolean;
-      }
-    ],
+    [[Structs.PendingRequestStructOutput, string, boolean]],
     "view"
   >;
 
@@ -682,20 +462,6 @@ export interface ProcessorEndpoint extends BaseContract {
   >;
 
   getPendingRequestsSize: TypedContractMethod<[], [bigint], "view">;
-
-  getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
-
-  grantRole: TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  hasRole: TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [boolean],
-    "view"
-  >;
 
   isCurrentPendingRequest: TypedContractMethod<
     [requestId: BytesLike],
@@ -714,52 +480,6 @@ export interface ProcessorEndpoint extends BaseContract {
     [void],
     "nonpayable"
   >;
-
-  maxQueueSize: TypedContractMethod<[], [bigint], "view">;
-
-  minFeePerRequest: TypedContractMethod<[], [bigint], "view">;
-
-  renounceRole: TypedContractMethod<
-    [role: BytesLike, callerConfirmation: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  requestById: TypedContractMethod<
-    [arg0: BytesLike],
-    [
-      [
-        bigint,
-        bigint,
-        bigint,
-        string,
-        string,
-        string,
-        bigint,
-        bigint,
-        bigint
-      ] & {
-        timestamp: bigint;
-        depositAmount: bigint;
-        maxFeeValue: bigint;
-        requestId: string;
-        payload: string;
-        sender: string;
-        applicationId: bigint;
-        protocolVersion: bigint;
-        requestType: bigint;
-      }
-    ],
-    "view"
-  >;
-
-  revokeRole: TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  stateRoot: TypedContractMethod<[], [string], "view">;
 
   stateUpdate: TypedContractMethod<
     [
@@ -791,14 +511,6 @@ export interface ProcessorEndpoint extends BaseContract {
     "payable"
   >;
 
-  supportsInterface: TypedContractMethod<
-    [interfaceId: BytesLike],
-    [boolean],
-    "view"
-  >;
-
-  teeAuthenticator: TypedContractMethod<[], [string], "view">;
-
   updateFeeCollector: TypedContractMethod<
     [newFeeCollector: AddressLike],
     [void],
@@ -815,27 +527,6 @@ export interface ProcessorEndpoint extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
-  getFunction(
-    nameOrSignature: "ADMIN"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "APPLICATION_ID"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "DEFAULT_ADMIN_ROLE"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "PROTOCOL_VERSION"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "UPDATE_STATUS_ROLE"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "authorityRegistry"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "feeCollector"
-  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "generateRequestId"
   ): TypedContractMethod<
@@ -854,11 +545,7 @@ export interface ProcessorEndpoint extends BaseContract {
     nameOrSignature: "getNextPendingRequest"
   ): TypedContractMethod<
     [],
-    [
-      [Structs.PendingRequestStructOutput, string, boolean] & {
-        success: boolean;
-      }
-    ],
+    [[Structs.PendingRequestStructOutput, string, boolean]],
     "view"
   >;
   getFunction(
@@ -874,23 +561,6 @@ export interface ProcessorEndpoint extends BaseContract {
   getFunction(
     nameOrSignature: "getPendingRequestsSize"
   ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getRoleAdmin"
-  ): TypedContractMethod<[role: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "grantRole"
-  ): TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "hasRole"
-  ): TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [boolean],
-    "view"
-  >;
   getFunction(
     nameOrSignature: "isCurrentPendingRequest"
   ): TypedContractMethod<[requestId: BytesLike], [boolean], "view">;
@@ -908,58 +578,6 @@ export interface ProcessorEndpoint extends BaseContract {
     [void],
     "nonpayable"
   >;
-  getFunction(
-    nameOrSignature: "maxQueueSize"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "minFeePerRequest"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "renounceRole"
-  ): TypedContractMethod<
-    [role: BytesLike, callerConfirmation: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "requestById"
-  ): TypedContractMethod<
-    [arg0: BytesLike],
-    [
-      [
-        bigint,
-        bigint,
-        bigint,
-        string,
-        string,
-        string,
-        bigint,
-        bigint,
-        bigint
-      ] & {
-        timestamp: bigint;
-        depositAmount: bigint;
-        maxFeeValue: bigint;
-        requestId: string;
-        payload: string;
-        sender: string;
-        applicationId: bigint;
-        protocolVersion: bigint;
-        requestType: bigint;
-      }
-    ],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "revokeRole"
-  ): TypedContractMethod<
-    [role: BytesLike, account: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "stateRoot"
-  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "stateUpdate"
   ): TypedContractMethod<
@@ -992,12 +610,6 @@ export interface ProcessorEndpoint extends BaseContract {
     [string],
     "payable"
   >;
-  getFunction(
-    nameOrSignature: "supportsInterface"
-  ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "teeAuthenticator"
-  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "updateFeeCollector"
   ): TypedContractMethod<[newFeeCollector: AddressLike], [void], "nonpayable">;
@@ -1039,27 +651,6 @@ export interface ProcessorEndpoint extends BaseContract {
     RequestSubmittedEvent.InputTuple,
     RequestSubmittedEvent.OutputTuple,
     RequestSubmittedEvent.OutputObject
-  >;
-  getEvent(
-    key: "RoleAdminChanged"
-  ): TypedContractEvent<
-    RoleAdminChangedEvent.InputTuple,
-    RoleAdminChangedEvent.OutputTuple,
-    RoleAdminChangedEvent.OutputObject
-  >;
-  getEvent(
-    key: "RoleGranted"
-  ): TypedContractEvent<
-    RoleGrantedEvent.InputTuple,
-    RoleGrantedEvent.OutputTuple,
-    RoleGrantedEvent.OutputObject
-  >;
-  getEvent(
-    key: "RoleRevoked"
-  ): TypedContractEvent<
-    RoleRevokedEvent.InputTuple,
-    RoleRevokedEvent.OutputTuple,
-    RoleRevokedEvent.OutputObject
   >;
   getEvent(
     key: "StateRootUpdate"
@@ -1137,39 +728,6 @@ export interface ProcessorEndpoint extends BaseContract {
       RequestSubmittedEvent.InputTuple,
       RequestSubmittedEvent.OutputTuple,
       RequestSubmittedEvent.OutputObject
-    >;
-
-    "RoleAdminChanged(bytes32,bytes32,bytes32)": TypedContractEvent<
-      RoleAdminChangedEvent.InputTuple,
-      RoleAdminChangedEvent.OutputTuple,
-      RoleAdminChangedEvent.OutputObject
-    >;
-    RoleAdminChanged: TypedContractEvent<
-      RoleAdminChangedEvent.InputTuple,
-      RoleAdminChangedEvent.OutputTuple,
-      RoleAdminChangedEvent.OutputObject
-    >;
-
-    "RoleGranted(bytes32,address,address)": TypedContractEvent<
-      RoleGrantedEvent.InputTuple,
-      RoleGrantedEvent.OutputTuple,
-      RoleGrantedEvent.OutputObject
-    >;
-    RoleGranted: TypedContractEvent<
-      RoleGrantedEvent.InputTuple,
-      RoleGrantedEvent.OutputTuple,
-      RoleGrantedEvent.OutputObject
-    >;
-
-    "RoleRevoked(bytes32,address,address)": TypedContractEvent<
-      RoleRevokedEvent.InputTuple,
-      RoleRevokedEvent.OutputTuple,
-      RoleRevokedEvent.OutputObject
-    >;
-    RoleRevoked: TypedContractEvent<
-      RoleRevokedEvent.InputTuple,
-      RoleRevokedEvent.OutputTuple,
-      RoleRevokedEvent.OutputObject
     >;
 
     "StateRootUpdate(uint64,bytes32,bytes32,bytes32)": TypedContractEvent<

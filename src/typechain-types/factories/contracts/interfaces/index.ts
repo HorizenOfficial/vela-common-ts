@@ -2,5 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export { IAuthorityChecker__factory } from "./IAuthorityChecker__factory";
+export { IAuthorityRegistry__factory } from "./IAuthorityRegistry__factory";
+export { IDefaultAuthorityChecker__factory } from "./IDefaultAuthorityChecker__factory";
 export { INitroProver__factory } from "./INitroProver__factory";
+export { IProcessorEndpoint__factory } from "./IProcessorEndpoint__factory";
 export { ITeeAuthenticator__factory } from "./ITeeAuthenticator__factory";
+export { ITeeAuthenticatorAdmin__factory } from "./ITeeAuthenticatorAdmin__factory";

@@ -1,6 +1,6 @@
 {
   "name": "horizen-cce-common-ts",
-  "version": "0.1.0",
+  "version": "0.0.18",
   "description": "TypeScript library for interacting with Horizen CCE (Confidential Computing Environment) smart contracts. Provides P-521 ECDH encryption and blockchain client for browser applications.",
   "main": "dist/index.js",
   "module": "dist/index.js",

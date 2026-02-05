@@ -10,6 +10,11 @@ import type {
 
 const _abi = [
   {
+    inputs: [],
+    name: "TeeIsNotSet",
+    type: "error",
+  },
+  {
     inputs: [
       {
         internalType: "uint64",

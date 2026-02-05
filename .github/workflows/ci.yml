@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [ main, dev ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ main, dev ]
 
@@ -41,3 +43,33 @@ jobs:
           test -f dist/index.js || (echo "dist/index.js not found" && exit 1)
           test -f dist/index.d.ts || (echo "dist/index.d.ts not found" && exit 1)
           echo "Build artifacts verified successfully"
+
+      - name: Upload dist artifacts
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: |
+            dist/index.js
+            dist/index.d.ts
+
+  release:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-files
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/index.js
+            dist/index.d.ts
