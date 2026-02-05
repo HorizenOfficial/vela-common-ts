@@ -2,11 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main, dev, pc/release_from_ci ]
     tags:
       - 'v*'
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main, dev, pc/release_from_ci ]
 
 jobs:
   build-and-test:
