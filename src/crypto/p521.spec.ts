@@ -2,8 +2,8 @@ import { JsonRpcProvider, Signer } from "ethers";
 import ganache, { Server } from "ganache";
 import assert from "assert";
 import { deriveP521PrivateKeyFromSigner } from "./wallet";
-import { decrypt, encrypt } from "./p521";
-import { bytesToString, stringToBytes } from "./utils";
+import { decrypt, encrypt, importPrivateKeyFromHex, importPublicKeyFromHex } from "./p521";
+import { bytesToString, hexToBytes, stringToBytes } from "./utils";
 
 let server: Server;
 let signer: Signer;
@@ -74,5 +74,24 @@ describe("P521 test", function () {
     const decryptedMessage = bytesToString(decryptedBytes);
 
     assert.equal(decryptedMessage, TEST_MESSAGE);
+  });
+
+  it("decrypt Go library generated ciphertext and verify it is correct", async () => {
+    // Test data from Go library
+    const receiverPrivateKeyHex = "001183b8a4d7529277a45cfbc6a113eb228cbbfb95586b8a53cd00ba99544084a15a31111e2888831beaa25bec4e9a581c570c396fe79fb087b6e1b05ca028525940";
+    const senderPublicKeyHex = "0401b6fb3fba703092f3f5f6c1b8b7cb86e876b4b1ba972176f2d39f77200d6f265a2ac7566809a3869ff3757b7f72d9c2df67e89caaf5a979a69b68cd4a13c1a3049f00ef9df5c8f61558c167586dd9a42430f7258e27058ed93311895fd92c9de8d642dd0b761dbc0a7fa9781eaccf7c63b1edf1ea6ea13effdbb126428c3226b5668bcf";
+    const ciphertextHex = "78748faccaa4472319660f7a31bc6cbaa602f0b6d46e4369d0680f97304d9d9075c7720c21240c9d100dab1044ed74dee69f953e275b9d3e915ff5eee7baf5c7e8d972d72873b75556af8eafa84325e3f2b513d4a4764b64fceb5450c3d88536afa5eae6c5d81b04f3f7c7f5359784";
+    const expectedDecrypted = '{"type":"deposit","amount":"0x38d7ea4c68000","balance":"0x38d7ea4c68000","nonce":4}';
+
+    // Import keys
+    const receiverPrivateKey = await importPrivateKeyFromHex(receiverPrivateKeyHex);
+    const senderPublicKey = await importPublicKeyFromHex(senderPublicKeyHex);
+    const ciphertext = hexToBytes(ciphertextHex);
+
+    // Decrypt
+    const decryptedBytes = await decrypt(receiverPrivateKey, senderPublicKey, ciphertext);
+    const decryptedMessage = bytesToString(decryptedBytes);
+
+    assert.equal(decryptedMessage, expectedDecrypted);
   });
 });

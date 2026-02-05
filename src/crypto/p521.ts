@@ -275,6 +275,40 @@ export async function importPrivateKeyFromJWK(jwk: JsonWebKey): Promise<CryptoKe
 }
 
 /**
+ * Imports a private key from hex bytes (d value)
+ */
+export async function importPrivateKeyFromHex(hexString: string): Promise<CryptoKey> {
+  const dBytes = hexToBytes(hexString);
+  const d = BigInt("0x" + hexString);
+
+  const { x, y } = computePublicKeyFromPrivate(d);
+
+  const xBytes = bigIntToUint8Array(x, 66);
+  const yBytes = bigIntToUint8Array(y, 66);
+
+  const xB64 = uint8ArrayToBase64Url(xBytes);
+  const yB64 = uint8ArrayToBase64Url(yBytes);
+  const dB64 = uint8ArrayToBase64Url(dBytes);
+
+  const jwk: JsonWebKey = {
+    kty: "EC",
+    crv: "P-521",
+    x: xB64,
+    y: yB64,
+    d: dB64,
+    ext: true,
+  };
+
+  return await crypto.subtle.importKey(
+    "jwk",
+    jwk,
+    { name: "ECDH", namedCurve: "P-521" },
+    true,
+    ["deriveKey", "deriveBits"]
+  );
+}
+
+/**
  * Exports a private key as JWK
  */
 export async function exportPrivateKeyToJWK(privateKey: CryptoKey): Promise<JsonWebKey> {
@@ -292,7 +326,7 @@ export async function encrypt(
   const sharedSecret = await crypto.subtle.deriveBits(
     { name: "ECDH", public: receiverPublicKey },
     senderPrivateKey,
-    256
+    528 // P521 uses 528 bits (rounded up from 521)
   );
   const aesKey = await deriveAES256KeyFromBits(new Uint8Array(sharedSecret));
   return await encryptWithAES(aesKey, message);
@@ -309,7 +343,7 @@ export async function decrypt(
   const sharedSecret = await crypto.subtle.deriveBits(
     { name: "ECDH", public: senderPublicKey },
     receiverPrivateKey,
-    256
+    528 // P521 uses 528 bits (rounded up from 521)
   );
   const aesKey = await deriveAES256KeyFromBits(new Uint8Array(sharedSecret));
   return await decryptWithAES(aesKey, ciphertext);
