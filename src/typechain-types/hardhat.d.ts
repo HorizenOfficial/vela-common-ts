@@ -62,13 +62,29 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IAuthorityChecker__factory>;
     getContractFactory(
+      name: "IAuthorityRegistry",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAuthorityRegistry__factory>;
+    getContractFactory(
+      name: "IDefaultAuthorityChecker",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IDefaultAuthorityChecker__factory>;
+    getContractFactory(
       name: "INitroProver",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.INitroProver__factory>;
     getContractFactory(
+      name: "IProcessorEndpoint",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IProcessorEndpoint__factory>;
+    getContractFactory(
       name: "ITeeAuthenticator",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ITeeAuthenticator__factory>;
+    getContractFactory(
+      name: "ITeeAuthenticatorAdmin",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ITeeAuthenticatorAdmin__factory>;
     getContractFactory(
       name: "FallbackFailure",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -151,15 +167,35 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IAuthorityChecker>;
     getContractAt(
+      name: "IAuthorityRegistry",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAuthorityRegistry>;
+    getContractAt(
+      name: "IDefaultAuthorityChecker",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IDefaultAuthorityChecker>;
+    getContractAt(
       name: "INitroProver",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.INitroProver>;
     getContractAt(
+      name: "IProcessorEndpoint",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IProcessorEndpoint>;
+    getContractAt(
       name: "ITeeAuthenticator",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.ITeeAuthenticator>;
+    getContractAt(
+      name: "ITeeAuthenticatorAdmin",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ITeeAuthenticatorAdmin>;
     getContractAt(
       name: "FallbackFailure",
       address: string | ethers.Addressable,
@@ -235,13 +271,29 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IAuthorityChecker>;
     deployContract(
+      name: "IAuthorityRegistry",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IAuthorityRegistry>;
+    deployContract(
+      name: "IDefaultAuthorityChecker",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IDefaultAuthorityChecker>;
+    deployContract(
       name: "INitroProver",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.INitroProver>;
     deployContract(
+      name: "IProcessorEndpoint",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IProcessorEndpoint>;
+    deployContract(
       name: "ITeeAuthenticator",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ITeeAuthenticator>;
+    deployContract(
+      name: "ITeeAuthenticatorAdmin",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ITeeAuthenticatorAdmin>;
     deployContract(
       name: "FallbackFailure",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -324,15 +376,35 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IAuthorityChecker>;
     deployContract(
+      name: "IAuthorityRegistry",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IAuthorityRegistry>;
+    deployContract(
+      name: "IDefaultAuthorityChecker",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IDefaultAuthorityChecker>;
+    deployContract(
       name: "INitroProver",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.INitroProver>;
     deployContract(
+      name: "IProcessorEndpoint",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IProcessorEndpoint>;
+    deployContract(
       name: "ITeeAuthenticator",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ITeeAuthenticator>;
+    deployContract(
+      name: "ITeeAuthenticatorAdmin",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ITeeAuthenticatorAdmin>;
     deployContract(
       name: "FallbackFailure",
       args: any[],
