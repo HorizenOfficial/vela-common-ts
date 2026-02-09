@@ -6,3 +6,6 @@ export { CHALLENGE, HKDF_SALT, HKDF_INFO } from "./constants";
 
 //blockchain
 export { HorizenCCEClient, RequestType } from "./blockchain/client";
+
+//subgraph
+export { type SubgraphClient, type RequestCompleted, type UserEvent, SubgraphClientImpl, createSubgraphClient, fetchAndDecryptUserEvents, userEventSortKey, MockSubgraphClient } from "./subgraph";
