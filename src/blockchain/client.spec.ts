@@ -80,6 +80,22 @@ describe("CCE Client test", function () {
     assert.notEqual(submitResponse.transactionReceipt, undefined);
   })
 
+  it("getPendingPayments", async () => {
+    const signer = await provider.getSigner(0);
+    const address = await signer.getAddress();
+    const pending = await client.getPendingPayments(address);
+    assert.equal(pending, BigInt(0));
+  });
+
+  it("withdrawPayments", async () => {
+    const signer = await provider.getSigner(0);
+    const address = await signer.getAddress();
+    const tx = await client.withdrawPayments(address);
+    const receipt = await tx.wait();
+    assert.notEqual(receipt, undefined);
+    assert.equal(receipt!.status, 1);
+  });
+
   it("getCurrentUserEvents (just decrypting - without retrieving events)", async () => {
     //generate user key
     const userKeyPair = await deriveP521PrivateKeyFromSigner(await provider.getSigner(0), true);

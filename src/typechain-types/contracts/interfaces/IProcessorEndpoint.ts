@@ -78,19 +78,21 @@ export interface IProcessorEndpointInterface extends Interface {
       | "getPendingRequestsPage"
       | "getPendingRequestsSize"
       | "isCurrentPendingRequest"
-      | "markRequestCompleted"
       | "markRequestFailed"
       | "stateUpdate"
       | "submitRequest"
       | "updateFeeCollector"
       | "updateQueueThreshold"
+      | "withdrawPayments"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
       | "FeeCollectorUpdated"
+      | "PaymentWithdrawn"
       | "QueueThresholdUpdated"
       | "Refund"
+      | "ReportGenerated"
       | "RequestCompleted"
       | "RequestSubmitted"
       | "StateRootUpdate"
@@ -130,10 +132,6 @@ export interface IProcessorEndpointInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "markRequestCompleted",
-    values: [BytesLike, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "markRequestFailed",
     values: [BytesLike, BigNumberish, string]
   ): string;
@@ -171,6 +169,10 @@ export interface IProcessorEndpointInterface extends Interface {
     functionFragment: "updateQueueThreshold",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawPayments",
+    values: [AddressLike]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "generateRequestId",
@@ -197,10 +199,6 @@ export interface IProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "markRequestCompleted",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "markRequestFailed",
     data: BytesLike
   ): Result;
@@ -220,6 +218,10 @@ export interface IProcessorEndpointInterface extends Interface {
     functionFragment: "updateQueueThreshold",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawPayments",
+    data: BytesLike
+  ): Result;
 }
 
 export namespace FeeCollectorUpdatedEvent {
@@ -227,6 +229,19 @@ export namespace FeeCollectorUpdatedEvent {
   export type OutputTuple = [newFeeCollector: string];
   export interface OutputObject {
     newFeeCollector: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace PaymentWithdrawnEvent {
+  export type InputTuple = [payee: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [payee: string, amount: bigint];
+  export interface OutputObject {
+    payee: string;
+    amount: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -264,6 +279,19 @@ export namespace RefundEvent {
     requestId: string;
     to: string;
     amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace ReportGeneratedEvent {
+  export type InputTuple = [applicationId: BigNumberish, requestId: BytesLike];
+  export type OutputTuple = [applicationId: bigint, requestId: string];
+  export interface OutputObject {
+    applicationId: bigint;
+    requestId: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -469,12 +497,6 @@ export interface IProcessorEndpoint extends BaseContract {
     "view"
   >;
 
-  markRequestCompleted: TypedContractMethod<
-    [requestId: BytesLike, refund: BigNumberish, applicationFees: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
   markRequestFailed: TypedContractMethod<
     [requestId: BytesLike, errorCode: BigNumberish, errorMessage: string],
     [void],
@@ -523,6 +545,12 @@ export interface IProcessorEndpoint extends BaseContract {
     "nonpayable"
   >;
 
+  withdrawPayments: TypedContractMethod<
+    [payee: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -564,13 +592,6 @@ export interface IProcessorEndpoint extends BaseContract {
   getFunction(
     nameOrSignature: "isCurrentPendingRequest"
   ): TypedContractMethod<[requestId: BytesLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "markRequestCompleted"
-  ): TypedContractMethod<
-    [requestId: BytesLike, refund: BigNumberish, applicationFees: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
   getFunction(
     nameOrSignature: "markRequestFailed"
   ): TypedContractMethod<
@@ -616,6 +637,9 @@ export interface IProcessorEndpoint extends BaseContract {
   getFunction(
     nameOrSignature: "updateQueueThreshold"
   ): TypedContractMethod<[newThreshold: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "withdrawPayments"
+  ): TypedContractMethod<[payee: AddressLike], [void], "nonpayable">;
 
   getEvent(
     key: "FeeCollectorUpdated"
@@ -623,6 +647,13 @@ export interface IProcessorEndpoint extends BaseContract {
     FeeCollectorUpdatedEvent.InputTuple,
     FeeCollectorUpdatedEvent.OutputTuple,
     FeeCollectorUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "PaymentWithdrawn"
+  ): TypedContractEvent<
+    PaymentWithdrawnEvent.InputTuple,
+    PaymentWithdrawnEvent.OutputTuple,
+    PaymentWithdrawnEvent.OutputObject
   >;
   getEvent(
     key: "QueueThresholdUpdated"
@@ -637,6 +668,13 @@ export interface IProcessorEndpoint extends BaseContract {
     RefundEvent.InputTuple,
     RefundEvent.OutputTuple,
     RefundEvent.OutputObject
+  >;
+  getEvent(
+    key: "ReportGenerated"
+  ): TypedContractEvent<
+    ReportGeneratedEvent.InputTuple,
+    ReportGeneratedEvent.OutputTuple,
+    ReportGeneratedEvent.OutputObject
   >;
   getEvent(
     key: "RequestCompleted"
@@ -686,6 +724,17 @@ export interface IProcessorEndpoint extends BaseContract {
       FeeCollectorUpdatedEvent.OutputObject
     >;
 
+    "PaymentWithdrawn(address,uint256)": TypedContractEvent<
+      PaymentWithdrawnEvent.InputTuple,
+      PaymentWithdrawnEvent.OutputTuple,
+      PaymentWithdrawnEvent.OutputObject
+    >;
+    PaymentWithdrawn: TypedContractEvent<
+      PaymentWithdrawnEvent.InputTuple,
+      PaymentWithdrawnEvent.OutputTuple,
+      PaymentWithdrawnEvent.OutputObject
+    >;
+
     "QueueThresholdUpdated(uint256)": TypedContractEvent<
       QueueThresholdUpdatedEvent.InputTuple,
       QueueThresholdUpdatedEvent.OutputTuple,
@@ -706,6 +755,17 @@ export interface IProcessorEndpoint extends BaseContract {
       RefundEvent.InputTuple,
       RefundEvent.OutputTuple,
       RefundEvent.OutputObject
+    >;
+
+    "ReportGenerated(uint64,bytes32)": TypedContractEvent<
+      ReportGeneratedEvent.InputTuple,
+      ReportGeneratedEvent.OutputTuple,
+      ReportGeneratedEvent.OutputObject
+    >;
+    ReportGenerated: TypedContractEvent<
+      ReportGeneratedEvent.InputTuple,
+      ReportGeneratedEvent.OutputTuple,
+      ReportGeneratedEvent.OutputObject
     >;
 
     "RequestCompleted(bytes32,uint256,uint8,uint8,string)": TypedContractEvent<

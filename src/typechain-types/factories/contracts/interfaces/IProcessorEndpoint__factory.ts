@@ -91,6 +91,25 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: "address",
+        name: "payee",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "PaymentWithdrawn",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: false,
         internalType: "uint256",
         name: "newThreshold",
@@ -129,6 +148,25 @@ const _abi = [
       },
     ],
     name: "Refund",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "requestId",
+        type: "bytes32",
+      },
+    ],
+    name: "ReportGenerated",
     type: "event",
   },
   {
@@ -565,29 +603,6 @@ const _abi = [
         type: "bytes32",
       },
       {
-        internalType: "uint256",
-        name: "refund",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "applicationFees",
-        type: "uint256",
-      },
-    ],
-    name: "markRequestCompleted",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "requestId",
-        type: "bytes32",
-      },
-      {
         internalType: "enum Structs.ErrorCode",
         name: "errorCode",
         type: "uint8",
@@ -739,6 +754,19 @@ const _abi = [
       },
     ],
     name: "updateQueueThreshold",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address payable",
+        name: "payee",
+        type: "address",
+      },
+    ],
+    name: "withdrawPayments",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
