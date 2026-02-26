@@ -1,0 +1,68 @@
+Horizen Vela Common TypeScript Library
+Copyright (c) 2025 The Horizen Foundation
+
+This product is licensed under the Business Source License 1.1.
+See the LICENSE file for the full license text.
+
+This product includes software developed by third parties. Below is a list of
+those third-party components, their licenses, and links to their source code.
+
+================================================================================
+PERMISSIVE DEPENDENCIES - npm (Runtime)
+================================================================================
+
+@noble/curves
+  Version:    ^2.0.1
+  License:    MIT
+  Source:     https://github.com/paulmillr/noble-curves
+  Notice:     Copyright (c) 2022 Paul Miller.
+
+elliptic
+  Version:    ^6.6.1
+  License:    MIT
+  Source:     https://github.com/indutny/elliptic
+  Notice:     Copyright (c) 2014-2019 Fedor Indutny.
+
+axios
+  Version:    ^1.13.2
+  License:    MIT
+  Source:     https://github.com/axios/axios
+  Notice:     Copyright (c) 2014-present Matt Zabriskie & Collaborators.
+
+================================================================================
+PERMISSIVE DEPENDENCIES - npm (Peer)
+================================================================================
+
+ethers
+  Version:    ^6.0.0
+  License:    MIT
+  Source:     https://github.com/ethers-io/ethers.js
+  Notice:     Copyright (c) 2016-2024 Richard Moore.
+
+================================================================================
+PERMISSIVE DEPENDENCIES - npm (Dev, notable)
+================================================================================
+
+hardhat
+  Version:    ^3.1.5
+  License:    MIT
+  Source:     https://github.com/NomicFoundation/hardhat
+  Notice:     Copyright (c) 2019 Nomic Labs LLC.
+
+mocha
+  Version:    ^11.7.5
+  License:    MIT
+  Source:     https://github.com/mochajs/mocha
+  Notice:     Copyright (c) 2011-2024 OpenJS Foundation and contributors.
+
+chai
+  Version:    ^6.2.2
+  License:    MIT
+  Source:     https://github.com/chaijs/chai
+  Notice:     Copyright (c) 2017 Chai.js Assertion Library.
+
+ganache
+  Version:    ^7.9.2
+  License:    MIT
+  Source:     https://github.com/trufflesuite/ganache
+  Notice:     Copyright (c) 2019-2022 Truffle, LLC.
