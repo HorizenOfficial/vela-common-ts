@@ -1,6 +1,6 @@
-# horizen-cce-common-ts
+# Horizen Vela Common TypeScript Library
 
-TypeScript library for interacting with Horizen CCE (Confidential Computing Environment) smart contracts. <br>
+TypeScript library for interacting with Horizen Vela. 
 Provides P-521 ECDH encryption and a blockchain client optimized for browser applications.
 
 ## Installation
