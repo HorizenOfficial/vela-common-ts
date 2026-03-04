@@ -1,7 +1,7 @@
 import { JsonRpcProvider } from "ethers";
 import ganache, { Server } from "ganache";
 import assert from "assert";
-import { HorizenCCEClient, RequestType } from "../blockchain/client";
+import { VelaClient, RequestType } from "../blockchain/client";
 import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types/index";
 import { decrypt, encrypt, exportPublicKeyToHex, generateKeyPair, P521KeyPair } from "../crypto/p521";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
@@ -11,7 +11,7 @@ import { TypedContractEvent, TypedEventLog } from "../typechain-types/common";
 
 let server: Server;
 let provider: JsonRpcProvider;
-let client: HorizenCCEClient;
+let client: VelaClient;
 let processorEndpoint: ProcessorEndpoint;
 let authorityRegistry: AuthorityRegistry;
 let teePubSecp: P521KeyPair;
@@ -48,7 +48,7 @@ describe("CCE Client test", function () {
     processorEndpoint = await new ProcessorEndpoint__factory(signer).deploy(teeAuthenticator, authorityRegistry, signer, signer, 0);
     await processorEndpoint.waitForDeployment();
 
-    client = new HorizenCCEClient(signer, true, await teeAuthenticator.getAddress(), await processorEndpoint.getAddress());
+    client = new VelaClient(signer, true, await teeAuthenticator.getAddress(), await processorEndpoint.getAddress());
   });
 
   after(async () => {

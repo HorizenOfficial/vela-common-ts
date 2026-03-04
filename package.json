@@ -1,7 +1,7 @@
 {
-  "name": "horizen-cce-common-ts",
-  "version": "0.0.18",
-  "description": "TypeScript library for interacting with Horizen CCE (Confidential Computing Environment) smart contracts. Provides P-521 ECDH encryption and blockchain client for browser applications.",
+  "name": "vela-common-ts",
+  "version": "0.0.24",
+  "description": "TypeScript library for interacting with Vela smart contracts. Provides P-521 ECDH encryption and blockchain client for browser applications.",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -26,12 +26,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HorizenOfficial/horizen-cce-common-ts.git"
+    "url": "git+https://github.com/HorizenOfficial/vela-common-ts.git"
   },
   "keywords": [
-    "horizen",
-    "cce",
-    "confidential-computing",
+    "vela",
     "ecdh",
     "p521",
     "encryption",
