@@ -18,7 +18,7 @@ let teePubSecp: P521KeyPair;
 
 const NODE_PORT = 9545
 
-describe("CCE Client test", function () {
+describe("Vela Client test", function () {
   this.timeout(20000);
   
   before(async () => {
