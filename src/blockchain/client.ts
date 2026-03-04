@@ -30,7 +30,7 @@ export class RequestResult {
   ) {}
 }
 
-export class HorizenCCEClient {
+export class VelaClient {
   private teeAuthenticator: ITeeAuthenticator;
   private processorEndpoint: ProcessorEndpoint;
   private signer: Signer;
