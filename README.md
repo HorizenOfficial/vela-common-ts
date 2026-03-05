@@ -1,12 +1,12 @@
-# horizen-cce-common-ts
+# Vela Common TypeScript Library
 
-TypeScript library for interacting with Horizen CCE (Confidential Computing Environment) smart contracts. <br>
+TypeScript library for interacting with Vela.
 Provides P-521 ECDH encryption and a blockchain client optimized for browser applications.
 
 ## Installation
 
 ```bash
-npm install horizen-cce-common-ts ethers
+npm install vela-common-ts ethers
 ```
 
 > **Note:** `ethers` v6 is a peer dependency and must be installed separately.
@@ -22,17 +22,17 @@ This will build a browser-friendly version of the lib in the path: dist/index.js
 
 ```typescript
 import {
-  HorizenCCEClient,
+  VelaClient,
   RequestType,
   ethersSignerFromBrowser,
   stringToBytes
-} from 'horizen-cce-common-ts';
+} from 'vela-common-ts';
 
 // Connect to user's wallet (MetaMask, etc.)
 const signer = await ethersSignerFromBrowser();
 
 // Initialize the client
-const client = new HorizenCCEClient(
+const client = new VelaClient(
   signer,
   false, // useAlternativeSign
   '0x...', // TEE Authenticator contract address
@@ -60,12 +60,12 @@ console.log('Request ID:', receipt.requestId);
 
 ### Blockchain Client
 
-#### `HorizenCCEClient`
+#### `VelaClient`
 
-Main client for interacting with Horizen CCE smart contracts.
+Main client for interacting with Vela smart contracts.
 
 ```typescript
-const client = new HorizenCCEClient(
+const client = new VelaClient(
   signer: Signer,              // ethers.js Signer instance
   useAlternativeSign: boolean, // Use alternative signing method
   teeAuthenticatorAddress: string,
@@ -104,7 +104,7 @@ enum RequestType {
 import {
   deriveP521PrivateKeyFromSigner,
   ethersSignerFromBrowser
-} from 'horizen-cce-common-ts';
+} from 'vela-common-ts';
 
 // Get signer from browser wallet
 const signer = await ethersSignerFromBrowser();
@@ -121,7 +121,7 @@ import {
   decrypt,
   importPublicKeyFromHex,
   P521KeyPair
-} from 'horizen-cce-common-ts';
+} from 'vela-common-ts';
 
 // Encrypt message
 const ciphertext = await encrypt(
@@ -176,7 +176,7 @@ npm run check
 
 ### Update Contract Types
 
-If `horizen-pes` contracts are updated, clone the [Horizen PES repository](https://github.com/HorizenOfficial/horizen-pes), then run:
+If `vela` contracts are updated, clone the [Vela repository](https://github.com/HorizenOfficial/vela), then run:
 
 ```bash
 cd contracts

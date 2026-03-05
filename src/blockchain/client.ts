@@ -1,4 +1,4 @@
-import { ContractTransactionReceipt, ContractTransactionResponse } from "ethers";
+import { AddressLike, ContractTransactionReceipt, ContractTransactionResponse } from "ethers";
 import { Signer } from "ethers";
 import { ITeeAuthenticator, ITeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
@@ -30,7 +30,7 @@ export class RequestResult {
   ) {}
 }
 
-export class HorizenCCEClient {
+export class VelaClient {
   private teeAuthenticator: ITeeAuthenticator;
   private processorEndpoint: ProcessorEndpoint;
   private signer: Signer;
@@ -126,6 +126,14 @@ export class HorizenCCEClient {
     );
 
     return await this.decryptAndFilterEvents(events, filter, stopAtFirst);
+  }
+
+  async getPendingPayments(address: AddressLike): Promise<bigint> {
+    return await this.processorEndpoint.payments(address);
+  }
+
+  async withdrawPayments(payee: AddressLike): Promise<ContractTransactionResponse> {
+    return await this.processorEndpoint.withdrawPayments(payee);
   }
 
   async decryptAndFilterEvents(events: TypedEventLog<TypedContractEvent<UserEventEvent.InputTuple, UserEventEvent.OutputTuple, UserEventEvent.OutputObject>>[], filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
