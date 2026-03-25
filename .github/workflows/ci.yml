@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, dev ]
     tags:
-      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
     branches: [ main, dev ]
 
@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ startsWith(github.ref, 'refs/tags/') && '0' || '1' }}
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -44,15 +46,6 @@ jobs:
           test -f dist/index.d.ts || (echo "dist/index.d.ts not found" && exit 1)
           echo "Build artifacts verified successfully"
 
-      - name: Upload dist artifacts
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-files
-          path: |
-            dist/index.js
-            dist/index.d.ts
-
   release:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -61,15 +54,85 @@ jobs:
       contents: write
 
     steps:
-      - name: Download dist artifacts
-        uses: actions/download-artifact@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          name: dist-files
-          path: dist
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Determine release type
+        id: release_type
+        run: |
+          # Strip 'v' prefix from tag
+          TAG="${GITHUB_REF_NAME#v}"
+          PROD_REGEX='^[0-9]+\.[0-9]+\.[0-9]+$'
+          DEV_REGEX='^[0-9]+\.[0-9]+\.[0-9]+-dev[0-9]*$'
+
+          echo "PROD_RELEASE=false" >> "$GITHUB_ENV"
+          echo "DEV_RELEASE=false" >> "$GITHUB_ENV"
+
+          # Verify package.json version matches the git tag
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if [ "${PACKAGE_VERSION}" != "${TAG}" ]; then
+            echo "::error::Git tag '${TAG}' does not match package.json version '${PACKAGE_VERSION}'"
+            exit 1
+          fi
+
+          # Check if tag is on prod or dev branch
+          if git branch -r --contains "${TAG}" | grep -qE "origin/${{ vars.PROD_RELEASE_BRANCH || 'main' }}$"; then
+            if [[ "${TAG}" =~ ${PROD_REGEX} ]]; then
+              echo "PROD_RELEASE=true" >> "$GITHUB_ENV"
+              echo "::notice::Production release detected: ${TAG}"
+            else
+              echo "::error::Tag '${TAG}' is on production branch but does not match format 'd.d.d'"
+              exit 1
+            fi
+          elif git branch -r --contains "${TAG}" | grep -qE "origin/${{ vars.DEV_RELEASE_BRANCH || 'dev' }}$"; then
+            if [[ "${TAG}" =~ ${DEV_REGEX} ]]; then
+              echo "DEV_RELEASE=true" >> "$GITHUB_ENV"
+              echo "::notice::Development release detected: ${TAG}"
+            else
+              echo "::error::Tag '${TAG}' is on dev branch but does not match format 'd.d.d-devN'"
+              exit 1
+            fi
+          else
+            echo "::error::Tag '${TAG}' does not derive from production or development branch"
+            exit 1
+          fi
+
+      - name: Validate GPG signed tag
+        if: ${{ vars.MAINTAINERS_KEYS != '' }}
+        run: |
+          for key in ${{ vars.MAINTAINERS_KEYS }}; do
+            gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "${key}" ||
+            gpg --batch --keyserver hkp://keyserver.ubuntu.com --recv-keys "${key}" ||
+            gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "${key}" ||
+            { echo "::error::GPG key ${key} not found on any keyserver"; exit 1; }
+          done
+          git verify-tag -v "${GITHUB_REF_NAME}" || { echo "::error::Tag signature verification failed"; exit 1; }
+
+      - name: Publish to npm registry
+        if: ${{ env.PROD_RELEASE == 'true' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          npm whoami || { echo "::error::Failed to authenticate to npm registry"; exit 1; }
+          npm publish --no-git-tag-version
+          echo "::notice::Package published to npm registry: ${GITHUB_REF_NAME}"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/index.js
-            dist/index.d.ts
+        if: ${{ env.PROD_RELEASE == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -sf -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" \
+            -d "{\"tag_name\":\"${GITHUB_REF_NAME}\",\"generate_release_notes\":true}"
