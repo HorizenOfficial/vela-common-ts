@@ -43,7 +43,7 @@ if [ "${prod_release}" = "true" ]; then
 
   # Publish the package
   log_info "Publishing to npm registry..."
-  npm publish --no-git-tag-version || fn_die "Failed to publish the package to npm registry."
+  npm publish --no-git-tag-version --access public --provenance --ignore-scripts || fn_die "Failed to publish the package to npm registry."
 
   log_info "Package successfully published to the npm registry under version: ${github_tag}"
 else
