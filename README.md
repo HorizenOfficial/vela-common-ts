@@ -81,9 +81,12 @@ const client = new VelaClient(
 | `submitRequestAndWaitForRequestId(...)` | Submit and wait for request ID |
 | `encryptForTee(data)` | Encrypt data for the TEE |
 | `getTeePublicKey()` | Get the TEE's public key |
+| `getSignerKeyPair()` | Get the P-521 key pair derived from the signer |
 | `getRequestCompletedEvent(requestId, fromBlock, toBlock)` | Query for request completion |
 | `getCurrentUserEvents(fromBlock, toBlock, applicationId, eventSubType, filter, stopAtFirst)` | Get encrypted events for current user |
 | `decryptAndFilterEvents(events, filter, stopAtFirst)` | Decrypt and filter events |
+| `getPendingPayments(address)` | Get pending payments for an address |
+| `withdrawPayments(payee)` | Withdraw payments for a payee |
 
 #### `RequestType`
 
@@ -119,11 +122,16 @@ const keyPair = await deriveP521PrivateKeyFromSigner(signer, false);
 import {
   encrypt,
   decrypt,
+  encryptWithAES,
+  decryptWithAES,
   importPublicKeyFromHex,
+  importPrivateKeyFromHex,
+  exportPublicKeyToHex,
+  generateKeyPair,
   P521KeyPair
 } from 'vela-common-ts';
 
-// Encrypt message
+// Encrypt message (ECDH + AES-GCM)
 const ciphertext = await encrypt(
   senderKeyPair.privateKey,
   receiverPublicKey,
@@ -136,7 +144,75 @@ const plaintext = await decrypt(
   senderPublicKey,
   ciphertext
 );
+
+// AES-only encryption/decryption
+const aesCiphertext = await encryptWithAES(sharedKey, plaintext);
+const aesPlaintext = await decryptWithAES(sharedKey, aesCiphertext);
+
+// Generate a new P-521 key pair
+const keyPair = await generateKeyPair();
+
+// Import/export keys
+const pubKey = await importPublicKeyFromHex(hexString);
+const privKey = await importPrivateKeyFromHex(hexString);
+const hexPubKey = await exportPublicKeyToHex(keyPair.publicKey);
 ```
+
+### Subgraph Client
+
+The library provides a subgraph client for querying Vela indexed data (as an alternative to direct on-chain event queries).
+
+```typescript
+import {
+  createSubgraphClient,
+  fetchAndDecryptUserEvents,
+  userEventSortKey
+} from 'vela-common-ts';
+
+// Create a subgraph client
+const subgraphClient = createSubgraphClient(subgraphUrl);
+
+// Health check
+await subgraphClient.healthCheck();
+
+// Query completed requests
+const result = await subgraphClient.getRequestCompletedByID(requestId);
+
+// Query user events
+const events = await subgraphClient.getUserEvents(applicationId, eventSubType, limit);
+
+// Fetch and decrypt user events
+const decryptedEvents = await fetchAndDecryptUserEvents(
+  subgraphClient,
+  keyPair,
+  teePublicKey,
+  applicationId,
+  eventSubType,
+  limit
+);
+```
+
+**Types:**
+
+| Type | Description |
+|------|-------------|
+| `SubgraphClient` | Interface for subgraph operations |
+| `SubgraphClientImpl` | Default implementation of SubgraphClient |
+| `MockSubgraphClient` | Mock implementation for testing |
+| `RequestCompleted` | Completed request projection from subgraph |
+| `UserEvent` | User event projection from subgraph |
+
+### Constants
+
+```typescript
+import { CHALLENGE, HKDF_SALT, HKDF_INFO } from 'vela-common-ts';
+```
+
+| Constant | Description |
+|----------|-------------|
+| `CHALLENGE` | Challenge message used for key derivation signing |
+| `HKDF_SALT` | Salt used in HKDF key derivation |
+| `HKDF_INFO` | Info parameter used in HKDF key derivation |
 
 ## Browser Compatibility
 
