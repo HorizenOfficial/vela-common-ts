@@ -33,7 +33,7 @@ export async function fetchAndDecryptUserEvents(
   teePublicKey: CryptoKey,
   privateKey: CryptoKey,
   applicationId: number,
-  eventSubType: string,
+  eventSubType: string | string[],
   limit: number,
   filter?: (data: Uint8Array) => boolean,
 ): Promise<Uint8Array[]> {
