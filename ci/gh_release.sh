@@ -29,7 +29,7 @@ if [ -z "${github_token}" ]; then
 fi
 
 log_info "=== Generating GitHub Release ${github_tag} for ${repo_slug} ==="
-curl -sf --fail-with-body -X POST \
+curl -s --fail-with-body -X POST \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: token ${github_token}" \
   "https://api.github.com/repos/${repo_slug}/releases" \
