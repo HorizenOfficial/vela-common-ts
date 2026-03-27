@@ -48,7 +48,7 @@ describe("fetchAndDecryptUserEvents", function () {
     assert.equal(bytesToString(result[0]), "msg-2");
   });
 
-  it("filter for subtypes", async () => {
+  it("filter", async () => {
     const teeKey = await generateKeyPair();
     const userKey = await generateKeyPair();
 
