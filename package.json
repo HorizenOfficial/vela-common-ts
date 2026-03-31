@@ -22,7 +22,7 @@
     "build:bundle": "esbuild src/index.ts --bundle --platform=browser --format=esm --target=es2020 --outdir=dist --sourcemap",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist",
     "check": "tsc --noEmit",
-    "test": "node --import tsx node_modules/.bin/mocha 'src/**/*.spec.ts'"
+    "test": "node --experimental-global-webcrypto --import tsx node_modules/.bin/mocha 'src/**/*.spec.ts'"
   },
   "repository": {
     "type": "git",
