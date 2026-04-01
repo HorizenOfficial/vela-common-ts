@@ -34,6 +34,10 @@ fi
 log_info "Installing dependencies..."
 npm ci || fn_die "Failed to install dependencies."
 
+# Build the package (bundle + type declarations)
+log_info "Building package..."
+npm run build || fn_die "Failed to build the package."
+
 # Publish the package to NPM registry
 if [ "${prod_release}" = "true" ]; then
 
