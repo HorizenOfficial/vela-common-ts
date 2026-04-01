@@ -1,6 +1,9 @@
 import assert from "assert";
+import { randomBytes } from "crypto";
 import { generateKeyPair, encrypt, decrypt } from "../crypto/p521";
 import { bytesToString, stringToBytes } from "../crypto/utils";
+import { generateSubtypeSet } from "../crypto/seed";
+import { DEFAULT_SUBTYPE_N } from "../constants";
 import { MockSubgraphClient } from "./mock";
 import { fetchAndDecryptUserEvents, setUserEventsPageSize } from "./userEvents";
 import { type UserEvent } from "./types";
@@ -168,6 +171,35 @@ describe("fetchAndDecryptUserEvents", function () {
     assert.equal(result.length, 2);
     assert.equal(bytesToString(result[0]), "one");
     assert.equal(bytesToString(result[1]), "two");
+  });
+
+  it("filters by seed-derived subtypes", async () => {
+    const teeKey = await generateKeyPair();
+    const userKey = await generateKeyPair();
+
+    const seed = randomBytes(65);
+    const subtypes = await generateSubtypeSet(seed, DEFAULT_SUBTYPE_N);
+
+    const appId = 7;
+    const ev1Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("seeded-1"));
+    const ev2Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("seeded-2"));
+    const ev3Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("other-1"));
+    const ev4Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("other-2"));
+
+    const mock = new MockSubgraphClient().withUserEvents(appId, [
+      makeEvent(appId, "0x01", ev1Cipher, subtypes[0], 10),
+      makeEvent(appId, "0x02", ev2Cipher, subtypes[5], 9),
+      makeEvent(appId, "0x03", ev3Cipher, "0xdeadbeef", 8),
+      makeEvent(appId, "0x04", ev4Cipher, "0xcafebabe", 7),
+    ]);
+
+    const result = await fetchAndDecryptUserEvents(
+      mock, teeKey.publicKey, userKey.privateKey, appId, subtypes, 0,
+    );
+
+    assert.equal(result.length, 2);
+    assert.equal(bytesToString(result[0]), "seeded-1");
+    assert.equal(bytesToString(result[1]), "seeded-2");
   });
 
   it("order within block", async () => {
