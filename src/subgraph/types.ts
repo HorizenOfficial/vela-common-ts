@@ -6,7 +6,7 @@ export interface SubgraphClient {
   getRequestCompletedByID(requestId: string): Promise<RequestCompleted | null>;
   getUserEvents(
     applicationId: number,
-    eventSubType: string,
+    eventSubType: string | string[],
     limit: number,
     before?: bigint,
   ): Promise<UserEvent[]>;

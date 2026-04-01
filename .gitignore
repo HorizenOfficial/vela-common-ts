@@ -5,3 +5,4 @@ src/*.js
 /cache/compile-cache.json
 /artifacts/artifacts.d.ts
 /src/**/*.js
+.claude/settings.json

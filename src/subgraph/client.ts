@@ -115,7 +115,7 @@ query($requestId: Bytes!) {
 
   async getUserEvents(
     applicationId: number,
-    eventSubType: string,
+    eventSubType: string | string[],
     limit: number,
     before?: bigint,
   ): Promise<UserEvent[]> {
@@ -130,7 +130,13 @@ query($requestId: Bytes!) {
     let varDefs = "";
     const whereParts = ["applicationId: $applicationId"];
 
-    if (eventSubType.trim()) {
+    if (Array.isArray(eventSubType)) {
+      if (eventSubType.length > 0) {
+        varDefs += ", $eventSubTypes: [Bytes!]!";
+        variables.eventSubTypes = eventSubType;
+        whereParts.push("eventSubType_in: $eventSubTypes");
+      }
+    } else if (eventSubType.trim()) {
       varDefs += ", $eventSubType: Bytes!";
       variables.eventSubType = eventSubType;
       whereParts.push("eventSubType: $eventSubType");

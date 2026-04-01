@@ -24,7 +24,7 @@ export class MockSubgraphClient implements SubgraphClient {
 
   async getUserEvents(
     applicationId: number,
-    eventSubType: string,
+    eventSubType: string | string[],
     limit: number,
     before?: bigint,
   ): Promise<UserEvent[]> {
@@ -33,9 +33,16 @@ export class MockSubgraphClient implements SubgraphClient {
 
     let filtered = [...all];
 
-    const trimmedSubType = eventSubType.trim();
-    if (trimmedSubType) {
-      filtered = filtered.filter((ev) => ev.eventSubType === trimmedSubType);
+    if (Array.isArray(eventSubType)) {
+      if (eventSubType.length > 0) {
+        const set = new Set(eventSubType);
+        filtered = filtered.filter((ev) => set.has(ev.eventSubType));
+      }
+    } else {
+      const trimmedSubType = eventSubType.trim();
+      if (trimmedSubType) {
+        filtered = filtered.filter((ev) => ev.eventSubType === trimmedSubType);
+      }
     }
     if (before != null) {
       filtered = filtered.filter((ev) => userEventSortKey(ev) < before);
