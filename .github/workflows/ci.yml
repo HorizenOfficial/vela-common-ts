@@ -40,6 +40,8 @@ jobs:
         run: |
           test -f dist/index.js || (echo "dist/index.js not found" && exit 1)
           test -f dist/index.d.ts || (echo "dist/index.d.ts not found" && exit 1)
+          test -f dist/node.js || (echo "dist/node.js not found" && exit 1)
+          test -f dist/node.d.ts || (echo "dist/node.d.ts not found" && exit 1)
           echo "Build artifacts verified successfully"
 
   release:
