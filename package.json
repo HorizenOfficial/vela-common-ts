@@ -1,6 +1,6 @@
 {
   "name": "@horizen/vela-common-ts",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "TypeScript library for interacting with Vela smart contracts. Provides P-521 ECDH encryption and blockchain client for browser applications.",
   "type": "module",
   "main": "dist/index.js",
@@ -28,7 +28,7 @@
   "scripts": {
     "build": "npm run build:bundle && npm run build:node && npm run build:types",
     "build:bundle": "esbuild src/index.ts --bundle --platform=browser --format=esm --target=es2020 --outdir=dist --sourcemap",
-    "build:node": "esbuild src/node.ts --bundle --platform=node --format=esm --target=es2020 --outfile=dist/node.js --sourcemap",
+    "build:node": "esbuild src/node.ts --bundle --platform=node --format=esm --target=es2020 --packages=external --outfile=dist/node.js --sourcemap",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist",
     "check": "tsc --noEmit",
     "test": "node --experimental-global-webcrypto --import tsx node_modules/.bin/mocha 'src/**/*.spec.ts'"
