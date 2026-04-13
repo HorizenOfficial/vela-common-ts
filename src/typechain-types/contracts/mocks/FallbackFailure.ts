@@ -34,6 +34,7 @@ export interface FallbackFailureInterface extends Interface {
       BigNumberish,
       BigNumberish,
       BytesLike,
+      AddressLike,
       BigNumberish,
       BigNumberish
     ]
@@ -95,7 +96,8 @@ export interface FallbackFailure extends BaseContract {
       applicationId: BigNumberish,
       requestType: BigNumberish,
       payload: BytesLike,
-      value: BigNumberish,
+      tokenAddress: AddressLike,
+      assetAmount: BigNumberish,
       maxFeeValue: BigNumberish
     ],
     [void],
@@ -115,7 +117,8 @@ export interface FallbackFailure extends BaseContract {
       applicationId: BigNumberish,
       requestType: BigNumberish,
       payload: BytesLike,
-      value: BigNumberish,
+      tokenAddress: AddressLike,
+      assetAmount: BigNumberish,
       maxFeeValue: BigNumberish
     ],
     [void],

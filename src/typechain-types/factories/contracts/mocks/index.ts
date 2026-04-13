@@ -2,5 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export { FallbackFailure__factory } from "./FallbackFailure__factory";
+export { FeeOnTransferERC20__factory } from "./FeeOnTransferERC20__factory";
+export { MockERC20__factory } from "./MockERC20__factory";
+export { MockERC20Permit__factory } from "./MockERC20Permit__factory";
 export { MockTeeAuthenticator__factory } from "./MockTeeAuthenticator__factory";
 export { NoAttestationTeeAuthenticator__factory } from "./NoAttestationTeeAuthenticator__factory";

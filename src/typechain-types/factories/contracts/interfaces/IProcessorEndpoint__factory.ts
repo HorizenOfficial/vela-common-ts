@@ -21,7 +21,22 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "DeadlineExpired",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "DeployerNotAllowed",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "FeeValueBelowMinimum",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InsufficientAppBalance",
     type: "error",
   },
   {
@@ -41,6 +56,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "InvalidPermit",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "InvalidProtocolVersion",
     type: "error",
   },
@@ -51,7 +71,17 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "InvalidRequestType",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "InvalidSignature",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidSigner",
     type: "error",
   },
   {
@@ -66,13 +96,91 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "MaxNumOfApplicationsExceeded",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "QueueThresholdExceeded",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "TransferAmountMismatch",
     type: "error",
   },
   {
     inputs: [],
     name: "TransferFailed",
     type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "requestId",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "applicationFees",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "enum Structs.RequestResult",
+        name: "status",
+        type: "uint8",
+      },
+      {
+        indexed: false,
+        internalType: "enum Structs.ErrorCode",
+        name: "errorCode",
+        type: "uint8",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "errorMessage",
+        type: "string",
+      },
+    ],
+    name: "DeployRequestCompleted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "requestId",
+        type: "bytes32",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "DeployRequestSubmitted",
+    type: "event",
   },
   {
     anonymous: false,
@@ -90,6 +198,31 @@ const _abi = [
   {
     anonymous: false,
     inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "oldMax",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newMax",
+        type: "uint256",
+      },
+    ],
+    name: "MaxNumberOfAppUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
       {
         indexed: true,
         internalType: "address",
@@ -135,9 +268,15 @@ const _abi = [
         type: "bytes32",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "tokenAddress",
         type: "address",
       },
       {
@@ -172,6 +311,12 @@ const _abi = [
   {
     anonymous: false,
     inputs: [
+      {
+        indexed: true,
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
       {
         indexed: true,
         internalType: "bytes32",
@@ -211,6 +356,12 @@ const _abi = [
     inputs: [
       {
         indexed: true,
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        indexed: true,
         internalType: "bytes32",
         name: "requestId",
         type: "bytes32",
@@ -219,6 +370,12 @@ const _abi = [
         indexed: true,
         internalType: "address",
         name: "sender",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "facilitator",
         type: "address",
       },
     ],
@@ -303,9 +460,15 @@ const _abi = [
         type: "bytes32",
       },
       {
-        indexed: false,
+        indexed: true,
         internalType: "address",
         name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "tokenAddress",
         type: "address",
       },
       {
@@ -317,6 +480,61 @@ const _abi = [
     ],
     name: "Withdrawal",
     type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "deployer",
+        type: "address",
+      },
+    ],
+    name: "addAllowedDeployer",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+    ],
+    name: "appCustody",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+      {
+        internalType: "address payable",
+        name: "payee",
+        type: "address",
+      },
+    ],
+    name: "claim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
     inputs: [
@@ -341,8 +559,13 @@ const _abi = [
         type: "bytes",
       },
       {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+      {
         internalType: "uint256",
-        name: "depositAmount",
+        name: "assetAmount",
         type: "uint256",
       },
       {
@@ -363,6 +586,25 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getFacilitatorNonce",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "getNextPendingRequest",
     outputs: [
@@ -374,8 +616,13 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "address",
+            name: "tokenAddress",
+            type: "address",
+          },
+          {
             internalType: "uint256",
-            name: "depositAmount",
+            name: "assetAmount",
             type: "uint256",
           },
           {
@@ -396,6 +643,11 @@ const _abi = [
           {
             internalType: "address",
             name: "sender",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "facilitator",
             type: "address",
           },
           {
@@ -444,8 +696,13 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "address",
+            name: "tokenAddress",
+            type: "address",
+          },
+          {
             internalType: "uint256",
-            name: "depositAmount",
+            name: "assetAmount",
             type: "uint256",
           },
           {
@@ -466,6 +723,11 @@ const _abi = [
           {
             internalType: "address",
             name: "sender",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "facilitator",
             type: "address",
           },
           {
@@ -515,8 +777,13 @@ const _abi = [
             type: "uint256",
           },
           {
+            internalType: "address",
+            name: "tokenAddress",
+            type: "address",
+          },
+          {
             internalType: "uint256",
-            name: "depositAmount",
+            name: "assetAmount",
             type: "uint256",
           },
           {
@@ -537,6 +804,11 @@ const _abi = [
           {
             internalType: "address",
             name: "sender",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "facilitator",
             type: "address",
           },
           {
@@ -579,6 +851,25 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "deployer",
+        type: "address",
+      },
+    ],
+    name: "isAllowedDeployer",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes32",
         name: "requestId",
         type: "bytes32",
@@ -598,22 +889,36 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "requestId",
-        type: "bytes32",
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
       },
       {
-        internalType: "enum Structs.ErrorCode",
-        name: "errorCode",
-        type: "uint8",
-      },
-      {
-        internalType: "string",
-        name: "errorMessage",
-        type: "string",
+        internalType: "address",
+        name: "payee",
+        type: "address",
       },
     ],
-    name: "markRequestFailed",
+    name: "pendingClaims",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "deployer",
+        type: "address",
+      },
+    ],
+    name: "removeAllowedDeployer",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -653,6 +958,11 @@ const _abi = [
       {
         components: [
           {
+            internalType: "address",
+            name: "tokenAddress",
+            type: "address",
+          },
+          {
             internalType: "address payable",
             name: "receiver",
             type: "address",
@@ -678,6 +988,16 @@ const _abi = [
         type: "uint256",
       },
       {
+        internalType: "enum Structs.ErrorCode",
+        name: "errorCode",
+        type: "uint8",
+      },
+      {
+        internalType: "string",
+        name: "errorMsg",
+        type: "string",
+      },
+      {
         internalType: "bytes",
         name: "signature",
         type: "bytes",
@@ -686,6 +1006,30 @@ const _abi = [
     name: "stateUpdate",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "protocolVersion",
+        type: "uint8",
+      },
+      {
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+    ],
+    name: "submitDeployRequest",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "payable",
     type: "function",
   },
   {
@@ -711,8 +1055,13 @@ const _abi = [
         type: "bytes",
       },
       {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+      {
         internalType: "uint256",
-        name: "depositAmount",
+        name: "assetAmount",
         type: "uint256",
       },
       {
@@ -735,6 +1084,108 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+      {
+        internalType: "uint8",
+        name: "protocolVersion",
+        type: "uint8",
+      },
+      {
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        internalType: "enum Structs.RequestType",
+        name: "requestType",
+        type: "uint8",
+      },
+      {
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+      {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "assetAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes",
+        name: "requestSignature",
+        type: "bytes",
+      },
+      {
+        internalType: "bytes",
+        name: "depositPermit",
+        type: "bytes",
+      },
+    ],
+    name: "submitRequestFor",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+    ],
+    name: "totalAppCustody",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+    ],
+    name: "totalPendingClaims",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address payable",
         name: "newFeeCollector",
         type: "address",
@@ -749,11 +1200,11 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "newThreshold",
+        name: "newMax",
         type: "uint256",
       },
     ],
-    name: "updateQueueThreshold",
+    name: "updateMaxNumOfApplications",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -761,12 +1212,12 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address payable",
-        name: "payee",
-        type: "address",
+        internalType: "uint256",
+        name: "newThreshold",
+        type: "uint256",
       },
     ],
-    name: "withdrawPayments",
+    name: "updateQueueThreshold",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

@@ -26,11 +26,13 @@ import type {
 export declare namespace Structs {
   export type PendingRequestStruct = {
     timestamp: BigNumberish;
-    depositAmount: BigNumberish;
+    tokenAddress: AddressLike;
+    assetAmount: BigNumberish;
     maxFeeValue: BigNumberish;
     requestId: BytesLike;
     payload: BytesLike;
     sender: AddressLike;
+    facilitator: AddressLike;
     applicationId: BigNumberish;
     protocolVersion: BigNumberish;
     requestType: BigNumberish;
@@ -38,57 +40,76 @@ export declare namespace Structs {
 
   export type PendingRequestStructOutput = [
     timestamp: bigint,
-    depositAmount: bigint,
+    tokenAddress: string,
+    assetAmount: bigint,
     maxFeeValue: bigint,
     requestId: string,
     payload: string,
     sender: string,
+    facilitator: string,
     applicationId: bigint,
     protocolVersion: bigint,
     requestType: bigint
   ] & {
     timestamp: bigint;
-    depositAmount: bigint;
+    tokenAddress: string;
+    assetAmount: bigint;
     maxFeeValue: bigint;
     requestId: string;
     payload: string;
     sender: string;
+    facilitator: string;
     applicationId: bigint;
     protocolVersion: bigint;
     requestType: bigint;
   };
 
   export type WithdrawalRequestStruct = {
+    tokenAddress: AddressLike;
     receiver: AddressLike;
     amount: BigNumberish;
   };
 
   export type WithdrawalRequestStructOutput = [
+    tokenAddress: string,
     receiver: string,
     amount: bigint
-  ] & { receiver: string; amount: bigint };
+  ] & { tokenAddress: string; receiver: string; amount: bigint };
 }
 
 export interface IProcessorEndpointInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "addAllowedDeployer"
+      | "appCustody"
+      | "claim"
       | "generateRequestId"
+      | "getFacilitatorNonce"
       | "getNextPendingRequest"
       | "getPendingRequests"
       | "getPendingRequestsPage"
       | "getPendingRequestsSize"
+      | "isAllowedDeployer"
       | "isCurrentPendingRequest"
-      | "markRequestFailed"
+      | "pendingClaims"
+      | "removeAllowedDeployer"
       | "stateUpdate"
+      | "submitDeployRequest"
       | "submitRequest"
+      | "submitRequestFor"
+      | "totalAppCustody"
+      | "totalPendingClaims"
       | "updateFeeCollector"
+      | "updateMaxNumOfApplications"
       | "updateQueueThreshold"
-      | "withdrawPayments"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
+      | "DeployRequestCompleted"
+      | "DeployRequestSubmitted"
       | "FeeCollectorUpdated"
+      | "MaxNumberOfAppUpdated"
       | "PaymentWithdrawn"
       | "QueueThresholdUpdated"
       | "Refund"
@@ -101,15 +122,32 @@ export interface IProcessorEndpointInterface extends Interface {
   ): EventFragment;
 
   encodeFunctionData(
+    functionFragment: "addAllowedDeployer",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "appCustody",
+    values: [BigNumberish, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "claim",
+    values: [AddressLike, AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "generateRequestId",
     values: [
       AddressLike,
       BigNumberish,
       BigNumberish,
       BytesLike,
+      AddressLike,
       BigNumberish,
       BigNumberish
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getFacilitatorNonce",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getNextPendingRequest",
@@ -128,12 +166,20 @@ export interface IProcessorEndpointInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "isAllowedDeployer",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "isCurrentPendingRequest",
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "markRequestFailed",
-    values: [BytesLike, BigNumberish, string]
+    functionFragment: "pendingClaims",
+    values: [AddressLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "removeAllowedDeployer",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "stateUpdate",
@@ -147,8 +193,14 @@ export interface IProcessorEndpointInterface extends Interface {
       Structs.WithdrawalRequestStruct[],
       BigNumberish,
       BigNumberish,
+      BigNumberish,
+      string,
       BytesLike
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "submitDeployRequest",
+    values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "submitRequest",
@@ -157,25 +209,59 @@ export interface IProcessorEndpointInterface extends Interface {
       BigNumberish,
       BigNumberish,
       BytesLike,
+      AddressLike,
       BigNumberish,
       BigNumberish
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "submitRequestFor",
+    values: [
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalAppCustody",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalPendingClaims",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "updateFeeCollector",
     values: [AddressLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "updateQueueThreshold",
+    functionFragment: "updateMaxNumOfApplications",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdrawPayments",
-    values: [AddressLike]
+    functionFragment: "updateQueueThreshold",
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "addAllowedDeployer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "appCustody", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "generateRequestId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getFacilitatorNonce",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -195,11 +281,19 @@ export interface IProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "isAllowedDeployer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "isCurrentPendingRequest",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "markRequestFailed",
+    functionFragment: "pendingClaims",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "removeAllowedDeployer",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -207,7 +301,23 @@ export interface IProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "submitDeployRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "submitRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "submitRequestFor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalAppCustody",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalPendingClaims",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -215,13 +325,66 @@ export interface IProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "updateQueueThreshold",
+    functionFragment: "updateMaxNumOfApplications",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawPayments",
+    functionFragment: "updateQueueThreshold",
     data: BytesLike
   ): Result;
+}
+
+export namespace DeployRequestCompletedEvent {
+  export type InputTuple = [
+    applicationId: BigNumberish,
+    requestId: BytesLike,
+    applicationFees: BigNumberish,
+    status: BigNumberish,
+    errorCode: BigNumberish,
+    errorMessage: string
+  ];
+  export type OutputTuple = [
+    applicationId: bigint,
+    requestId: string,
+    applicationFees: bigint,
+    status: bigint,
+    errorCode: bigint,
+    errorMessage: string
+  ];
+  export interface OutputObject {
+    applicationId: bigint;
+    requestId: string;
+    applicationFees: bigint;
+    status: bigint;
+    errorCode: bigint;
+    errorMessage: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace DeployRequestSubmittedEvent {
+  export type InputTuple = [
+    applicationId: BigNumberish,
+    requestId: BytesLike,
+    sender: AddressLike
+  ];
+  export type OutputTuple = [
+    applicationId: bigint,
+    requestId: string,
+    sender: string
+  ];
+  export interface OutputObject {
+    applicationId: bigint;
+    requestId: string;
+    sender: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace FeeCollectorUpdatedEvent {
@@ -236,10 +399,32 @@ export namespace FeeCollectorUpdatedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace PaymentWithdrawnEvent {
-  export type InputTuple = [payee: AddressLike, amount: BigNumberish];
-  export type OutputTuple = [payee: string, amount: bigint];
+export namespace MaxNumberOfAppUpdatedEvent {
+  export type InputTuple = [oldMax: BigNumberish, newMax: BigNumberish];
+  export type OutputTuple = [oldMax: bigint, newMax: bigint];
   export interface OutputObject {
+    oldMax: bigint;
+    newMax: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace PaymentWithdrawnEvent {
+  export type InputTuple = [
+    tokenAddress: AddressLike,
+    payee: AddressLike,
+    amount: BigNumberish
+  ];
+  export type OutputTuple = [
+    tokenAddress: string,
+    payee: string,
+    amount: bigint
+  ];
+  export interface OutputObject {
+    tokenAddress: string;
     payee: string;
     amount: bigint;
   }
@@ -266,18 +451,21 @@ export namespace RefundEvent {
     applicationId: BigNumberish,
     requestId: BytesLike,
     to: AddressLike,
+    tokenAddress: AddressLike,
     amount: BigNumberish
   ];
   export type OutputTuple = [
     applicationId: bigint,
     requestId: string,
     to: string,
+    tokenAddress: string,
     amount: bigint
   ];
   export interface OutputObject {
     applicationId: bigint;
     requestId: string;
     to: string;
+    tokenAddress: string;
     amount: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -301,6 +489,7 @@ export namespace ReportGeneratedEvent {
 
 export namespace RequestCompletedEvent {
   export type InputTuple = [
+    applicationId: BigNumberish,
     requestId: BytesLike,
     applicationFees: BigNumberish,
     status: BigNumberish,
@@ -308,6 +497,7 @@ export namespace RequestCompletedEvent {
     errorMessage: string
   ];
   export type OutputTuple = [
+    applicationId: bigint,
     requestId: string,
     applicationFees: bigint,
     status: bigint,
@@ -315,6 +505,7 @@ export namespace RequestCompletedEvent {
     errorMessage: string
   ];
   export interface OutputObject {
+    applicationId: bigint;
     requestId: string;
     applicationFees: bigint;
     status: bigint;
@@ -328,11 +519,23 @@ export namespace RequestCompletedEvent {
 }
 
 export namespace RequestSubmittedEvent {
-  export type InputTuple = [requestId: BytesLike, sender: AddressLike];
-  export type OutputTuple = [requestId: string, sender: string];
+  export type InputTuple = [
+    applicationId: BigNumberish,
+    requestId: BytesLike,
+    sender: AddressLike,
+    facilitator: AddressLike
+  ];
+  export type OutputTuple = [
+    applicationId: bigint,
+    requestId: string,
+    sender: string,
+    facilitator: string
+  ];
   export interface OutputObject {
+    applicationId: bigint;
     requestId: string;
     sender: string;
+    facilitator: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -395,18 +598,21 @@ export namespace WithdrawalEvent {
     applicationId: BigNumberish,
     requestId: BytesLike,
     to: AddressLike,
+    tokenAddress: AddressLike,
     amount: BigNumberish
   ];
   export type OutputTuple = [
     applicationId: bigint,
     requestId: string,
     to: string,
+    tokenAddress: string,
     amount: bigint
   ];
   export interface OutputObject {
     applicationId: bigint;
     requestId: string;
     to: string;
+    tokenAddress: string;
     amount: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -458,16 +664,41 @@ export interface IProcessorEndpoint extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  addAllowedDeployer: TypedContractMethod<
+    [deployer: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  appCustody: TypedContractMethod<
+    [applicationId: BigNumberish, tokenAddress: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  claim: TypedContractMethod<
+    [tokenAddress: AddressLike, payee: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
   generateRequestId: TypedContractMethod<
     [
       sender: AddressLike,
       applicationId: BigNumberish,
       requestType: BigNumberish,
       payload: BytesLike,
-      depositAmount: BigNumberish,
+      tokenAddress: AddressLike,
+      assetAmount: BigNumberish,
       idx: BigNumberish
     ],
     [string],
+    "view"
+  >;
+
+  getFacilitatorNonce: TypedContractMethod<
+    [user: AddressLike],
+    [bigint],
     "view"
   >;
 
@@ -491,14 +722,26 @@ export interface IProcessorEndpoint extends BaseContract {
 
   getPendingRequestsSize: TypedContractMethod<[], [bigint], "view">;
 
+  isAllowedDeployer: TypedContractMethod<
+    [deployer: AddressLike],
+    [boolean],
+    "view"
+  >;
+
   isCurrentPendingRequest: TypedContractMethod<
     [requestId: BytesLike],
     [boolean],
     "view"
   >;
 
-  markRequestFailed: TypedContractMethod<
-    [requestId: BytesLike, errorCode: BigNumberish, errorMessage: string],
+  pendingClaims: TypedContractMethod<
+    [tokenAddress: AddressLike, payee: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  removeAllowedDeployer: TypedContractMethod<
+    [deployer: AddressLike],
     [void],
     "nonpayable"
   >;
@@ -514,10 +757,18 @@ export interface IProcessorEndpoint extends BaseContract {
       withdrawalRequests: Structs.WithdrawalRequestStruct[],
       refund: BigNumberish,
       applicationFees: BigNumberish,
+      errorCode: BigNumberish,
+      errorMsg: string,
       signature: BytesLike
     ],
     [void],
     "nonpayable"
+  >;
+
+  submitDeployRequest: TypedContractMethod<
+    [protocolVersion: BigNumberish, payload: BytesLike],
+    [string],
+    "payable"
   >;
 
   submitRequest: TypedContractMethod<
@@ -526,15 +777,51 @@ export interface IProcessorEndpoint extends BaseContract {
       applicationId: BigNumberish,
       requestType: BigNumberish,
       payload: BytesLike,
-      depositAmount: BigNumberish,
+      tokenAddress: AddressLike,
+      assetAmount: BigNumberish,
       maxFeeValue: BigNumberish
     ],
     [string],
     "payable"
   >;
 
+  submitRequestFor: TypedContractMethod<
+    [
+      sender: AddressLike,
+      protocolVersion: BigNumberish,
+      applicationId: BigNumberish,
+      requestType: BigNumberish,
+      payload: BytesLike,
+      tokenAddress: AddressLike,
+      assetAmount: BigNumberish,
+      deadline: BigNumberish,
+      requestSignature: BytesLike,
+      depositPermit: BytesLike
+    ],
+    [string],
+    "payable"
+  >;
+
+  totalAppCustody: TypedContractMethod<
+    [tokenAddress: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  totalPendingClaims: TypedContractMethod<
+    [tokenAddress: AddressLike],
+    [bigint],
+    "view"
+  >;
+
   updateFeeCollector: TypedContractMethod<
     [newFeeCollector: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  updateMaxNumOfApplications: TypedContractMethod<
+    [newMax: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -545,16 +832,27 @@ export interface IProcessorEndpoint extends BaseContract {
     "nonpayable"
   >;
 
-  withdrawPayments: TypedContractMethod<
-    [payee: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "addAllowedDeployer"
+  ): TypedContractMethod<[deployer: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "appCustody"
+  ): TypedContractMethod<
+    [applicationId: BigNumberish, tokenAddress: AddressLike],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "claim"
+  ): TypedContractMethod<
+    [tokenAddress: AddressLike, payee: AddressLike],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "generateRequestId"
   ): TypedContractMethod<
@@ -563,12 +861,16 @@ export interface IProcessorEndpoint extends BaseContract {
       applicationId: BigNumberish,
       requestType: BigNumberish,
       payload: BytesLike,
-      depositAmount: BigNumberish,
+      tokenAddress: AddressLike,
+      assetAmount: BigNumberish,
       idx: BigNumberish
     ],
     [string],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "getFacilitatorNonce"
+  ): TypedContractMethod<[user: AddressLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "getNextPendingRequest"
   ): TypedContractMethod<
@@ -590,15 +892,21 @@ export interface IProcessorEndpoint extends BaseContract {
     nameOrSignature: "getPendingRequestsSize"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "isAllowedDeployer"
+  ): TypedContractMethod<[deployer: AddressLike], [boolean], "view">;
+  getFunction(
     nameOrSignature: "isCurrentPendingRequest"
   ): TypedContractMethod<[requestId: BytesLike], [boolean], "view">;
   getFunction(
-    nameOrSignature: "markRequestFailed"
+    nameOrSignature: "pendingClaims"
   ): TypedContractMethod<
-    [requestId: BytesLike, errorCode: BigNumberish, errorMessage: string],
-    [void],
-    "nonpayable"
+    [tokenAddress: AddressLike, payee: AddressLike],
+    [bigint],
+    "view"
   >;
+  getFunction(
+    nameOrSignature: "removeAllowedDeployer"
+  ): TypedContractMethod<[deployer: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "stateUpdate"
   ): TypedContractMethod<
@@ -612,10 +920,19 @@ export interface IProcessorEndpoint extends BaseContract {
       withdrawalRequests: Structs.WithdrawalRequestStruct[],
       refund: BigNumberish,
       applicationFees: BigNumberish,
+      errorCode: BigNumberish,
+      errorMsg: string,
       signature: BytesLike
     ],
     [void],
     "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "submitDeployRequest"
+  ): TypedContractMethod<
+    [protocolVersion: BigNumberish, payload: BytesLike],
+    [string],
+    "payable"
   >;
   getFunction(
     nameOrSignature: "submitRequest"
@@ -625,28 +942,74 @@ export interface IProcessorEndpoint extends BaseContract {
       applicationId: BigNumberish,
       requestType: BigNumberish,
       payload: BytesLike,
-      depositAmount: BigNumberish,
+      tokenAddress: AddressLike,
+      assetAmount: BigNumberish,
       maxFeeValue: BigNumberish
     ],
     [string],
     "payable"
   >;
   getFunction(
+    nameOrSignature: "submitRequestFor"
+  ): TypedContractMethod<
+    [
+      sender: AddressLike,
+      protocolVersion: BigNumberish,
+      applicationId: BigNumberish,
+      requestType: BigNumberish,
+      payload: BytesLike,
+      tokenAddress: AddressLike,
+      assetAmount: BigNumberish,
+      deadline: BigNumberish,
+      requestSignature: BytesLike,
+      depositPermit: BytesLike
+    ],
+    [string],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "totalAppCustody"
+  ): TypedContractMethod<[tokenAddress: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "totalPendingClaims"
+  ): TypedContractMethod<[tokenAddress: AddressLike], [bigint], "view">;
+  getFunction(
     nameOrSignature: "updateFeeCollector"
   ): TypedContractMethod<[newFeeCollector: AddressLike], [void], "nonpayable">;
   getFunction(
+    nameOrSignature: "updateMaxNumOfApplications"
+  ): TypedContractMethod<[newMax: BigNumberish], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "updateQueueThreshold"
   ): TypedContractMethod<[newThreshold: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "withdrawPayments"
-  ): TypedContractMethod<[payee: AddressLike], [void], "nonpayable">;
 
+  getEvent(
+    key: "DeployRequestCompleted"
+  ): TypedContractEvent<
+    DeployRequestCompletedEvent.InputTuple,
+    DeployRequestCompletedEvent.OutputTuple,
+    DeployRequestCompletedEvent.OutputObject
+  >;
+  getEvent(
+    key: "DeployRequestSubmitted"
+  ): TypedContractEvent<
+    DeployRequestSubmittedEvent.InputTuple,
+    DeployRequestSubmittedEvent.OutputTuple,
+    DeployRequestSubmittedEvent.OutputObject
+  >;
   getEvent(
     key: "FeeCollectorUpdated"
   ): TypedContractEvent<
     FeeCollectorUpdatedEvent.InputTuple,
     FeeCollectorUpdatedEvent.OutputTuple,
     FeeCollectorUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "MaxNumberOfAppUpdated"
+  ): TypedContractEvent<
+    MaxNumberOfAppUpdatedEvent.InputTuple,
+    MaxNumberOfAppUpdatedEvent.OutputTuple,
+    MaxNumberOfAppUpdatedEvent.OutputObject
   >;
   getEvent(
     key: "PaymentWithdrawn"
@@ -713,6 +1076,28 @@ export interface IProcessorEndpoint extends BaseContract {
   >;
 
   filters: {
+    "DeployRequestCompleted(uint64,bytes32,uint256,uint8,uint8,string)": TypedContractEvent<
+      DeployRequestCompletedEvent.InputTuple,
+      DeployRequestCompletedEvent.OutputTuple,
+      DeployRequestCompletedEvent.OutputObject
+    >;
+    DeployRequestCompleted: TypedContractEvent<
+      DeployRequestCompletedEvent.InputTuple,
+      DeployRequestCompletedEvent.OutputTuple,
+      DeployRequestCompletedEvent.OutputObject
+    >;
+
+    "DeployRequestSubmitted(uint64,bytes32,address)": TypedContractEvent<
+      DeployRequestSubmittedEvent.InputTuple,
+      DeployRequestSubmittedEvent.OutputTuple,
+      DeployRequestSubmittedEvent.OutputObject
+    >;
+    DeployRequestSubmitted: TypedContractEvent<
+      DeployRequestSubmittedEvent.InputTuple,
+      DeployRequestSubmittedEvent.OutputTuple,
+      DeployRequestSubmittedEvent.OutputObject
+    >;
+
     "FeeCollectorUpdated(address)": TypedContractEvent<
       FeeCollectorUpdatedEvent.InputTuple,
       FeeCollectorUpdatedEvent.OutputTuple,
@@ -724,7 +1109,18 @@ export interface IProcessorEndpoint extends BaseContract {
       FeeCollectorUpdatedEvent.OutputObject
     >;
 
-    "PaymentWithdrawn(address,uint256)": TypedContractEvent<
+    "MaxNumberOfAppUpdated(uint256,uint256)": TypedContractEvent<
+      MaxNumberOfAppUpdatedEvent.InputTuple,
+      MaxNumberOfAppUpdatedEvent.OutputTuple,
+      MaxNumberOfAppUpdatedEvent.OutputObject
+    >;
+    MaxNumberOfAppUpdated: TypedContractEvent<
+      MaxNumberOfAppUpdatedEvent.InputTuple,
+      MaxNumberOfAppUpdatedEvent.OutputTuple,
+      MaxNumberOfAppUpdatedEvent.OutputObject
+    >;
+
+    "PaymentWithdrawn(address,address,uint256)": TypedContractEvent<
       PaymentWithdrawnEvent.InputTuple,
       PaymentWithdrawnEvent.OutputTuple,
       PaymentWithdrawnEvent.OutputObject
@@ -746,7 +1142,7 @@ export interface IProcessorEndpoint extends BaseContract {
       QueueThresholdUpdatedEvent.OutputObject
     >;
 
-    "Refund(uint64,bytes32,address,uint256)": TypedContractEvent<
+    "Refund(uint64,bytes32,address,address,uint256)": TypedContractEvent<
       RefundEvent.InputTuple,
       RefundEvent.OutputTuple,
       RefundEvent.OutputObject
@@ -768,7 +1164,7 @@ export interface IProcessorEndpoint extends BaseContract {
       ReportGeneratedEvent.OutputObject
     >;
 
-    "RequestCompleted(bytes32,uint256,uint8,uint8,string)": TypedContractEvent<
+    "RequestCompleted(uint64,bytes32,uint256,uint8,uint8,string)": TypedContractEvent<
       RequestCompletedEvent.InputTuple,
       RequestCompletedEvent.OutputTuple,
       RequestCompletedEvent.OutputObject
@@ -779,7 +1175,7 @@ export interface IProcessorEndpoint extends BaseContract {
       RequestCompletedEvent.OutputObject
     >;
 
-    "RequestSubmitted(bytes32,address)": TypedContractEvent<
+    "RequestSubmitted(uint64,bytes32,address,address)": TypedContractEvent<
       RequestSubmittedEvent.InputTuple,
       RequestSubmittedEvent.OutputTuple,
       RequestSubmittedEvent.OutputObject
@@ -812,7 +1208,7 @@ export interface IProcessorEndpoint extends BaseContract {
       UserEventEvent.OutputObject
     >;
 
-    "Withdrawal(uint64,bytes32,address,uint256)": TypedContractEvent<
+    "Withdrawal(uint64,bytes32,address,address,uint256)": TypedContractEvent<
       WithdrawalEvent.InputTuple,
       WithdrawalEvent.OutputTuple,
       WithdrawalEvent.OutputObject
