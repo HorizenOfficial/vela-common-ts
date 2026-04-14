@@ -24,6 +24,7 @@ This will build a browser-friendly version of the lib in the path: dist/index.js
 import {
   VelaClient,
   RequestType,
+  ETH_TOKEN,
   ethersSignerFromBrowser,
   stringToBytes
 } from 'vela-common-ts';
@@ -43,13 +44,14 @@ const client = new VelaClient(
 const payload = stringToBytes(....);
 const encryptedPayload = await client.encryptForTee(payload);
 
-// Submit a request
+// Submit a request (ETH deposit)
 const receipt = await client.submitRequestAndWaitForRequestId(
   1,                    // protocolVersion
-  1,                    // applicationId
+  1n,                   // applicationId
   RequestType.PROCESS,  // requestType
   encryptedPayload,     // payload
-  0n,                   // depositAmount
+  ETH_TOKEN,            // tokenAddress (use ETH_TOKEN for native ETH)
+  0n,                   // assetAmount
   1000000000000000n     // maxFeeValue (wei)
 );
 
@@ -77,16 +79,20 @@ const client = new VelaClient(
 
 | Method | Description |
 |--------|-------------|
-| `submitRequest(...)` | Submit a request to the CCE |
+| `submitRequest(protocolVersion, applicationId, requestType, payload, tokenAddress, assetAmount, maxFeeValue)` | Submit a request (supports ETH and ERC-20 tokens) |
 | `submitRequestAndWaitForRequestId(...)` | Submit and wait for request ID |
+| `submitDeployRequest(protocolVersion, maxFeeValue, wasmSha256, constructorParams?)` | Submit a deploy request |
+| `submitDeployRequestAndWaitForRequestId(...)` | Submit deploy request and wait for request ID |
+| `approveToken(tokenAddress, amount)` | Approve ERC-20 token spending for the Processor Endpoint |
 | `encryptForTee(data)` | Encrypt data for the TEE |
 | `getTeePublicKey()` | Get the TEE's public key |
 | `getSignerKeyPair()` | Get the P-521 key pair derived from the signer |
 | `getRequestCompletedEvent(requestId, fromBlock, toBlock)` | Query for request completion |
+| `getDeployRequestCompletedEvent(applicationId, requestId, fromBlock, toBlock)` | Query for deploy request completion |
 | `getCurrentUserEvents(fromBlock, toBlock, applicationId, eventSubType, filter, stopAtFirst)` | Get encrypted events for current user |
 | `decryptAndFilterEvents(events, filter, stopAtFirst)` | Decrypt and filter events |
-| `getPendingPayments(address)` | Get pending payments for an address |
-| `withdrawPayments(payee)` | Withdraw payments for a payee |
+| `getPendingClaims(tokenAddress, payee)` | Get pending claim amount for an address |
+| `claim(tokenAddress, payee)` | Claim pending funds |
 
 #### `RequestType`
 
@@ -200,16 +206,21 @@ const decryptedEvents = await fetchAndDecryptUserEvents(
 | `SubgraphClientImpl` | Default implementation of SubgraphClient |
 | `MockSubgraphClient` | Mock implementation for testing |
 | `RequestCompleted` | Completed request projection from subgraph |
+| `DeployRequestCompleted` | Completed deploy request projection from subgraph |
 | `UserEvent` | User event projection from subgraph |
+| `OnChainRefund` | Refund event projection from subgraph |
+| `OnChainWithdrawal` | Withdrawal event projection from subgraph |
+| `ClaimExecuted` | Claim execution event projection from subgraph |
 
 ### Constants
 
 ```typescript
-import { CHALLENGE, HKDF_SALT, HKDF_INFO } from 'vela-common-ts';
+import { ETH_TOKEN, CHALLENGE, HKDF_SALT, HKDF_INFO } from 'vela-common-ts';
 ```
 
 | Constant | Description |
 |----------|-------------|
+| `ETH_TOKEN` | Sentinel address representing native ETH (use as `tokenAddress` for ETH deposits) |
 | `CHALLENGE` | Challenge message used for key derivation signing |
 | `HKDF_SALT` | Salt used in HKDF key derivation |
 | `HKDF_INFO` | Info parameter used in HKDF key derivation |
