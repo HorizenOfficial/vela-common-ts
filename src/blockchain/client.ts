@@ -1,4 +1,4 @@
-import { AddressLike, ContractTransactionReceipt, ContractTransactionResponse } from "ethers";
+import { ContractTransactionReceipt, ContractTransactionResponse } from "ethers";
 import { Signer } from "ethers";
 import { ITeeAuthenticator, ITeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types";
 import { IERC20__factory } from "../typechain-types/factories/@openzeppelin/contracts/token/ERC20/IERC20__factory";
@@ -243,11 +243,11 @@ export class VelaClient {
     return await token.approve(await this.processorEndpoint.getAddress(), amount);
   }
 
-  async getPendingClaims(tokenAddress: AddressLike, payee: AddressLike): Promise<bigint> {
+  async getPendingClaims(tokenAddress: string, payee: string): Promise<bigint> {
     return await this.processorEndpoint.pendingClaims(tokenAddress, payee);
   }
 
-  async claim(tokenAddress: AddressLike, payee: AddressLike): Promise<ContractTransactionResponse> {
+  async claim(tokenAddress: string, payee: string): Promise<ContractTransactionResponse> {
     return await this.processorEndpoint.claim(tokenAddress, payee);
   }
 
