@@ -34,10 +34,10 @@ interface RequestCompletedData {
 interface DeployRequestCompletedEntity {
   applicationId: string;
   requestId: string;
-  applicationFees: string;
   status: string;
   errorCode: string;
   errorMessage: string;
+  applicationFees: string;
   blockNumber: string;
 }
 
