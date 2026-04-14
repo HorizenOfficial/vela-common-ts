@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from "axios";
-import { type SubgraphClient, type RequestCompleted, type UserEvent } from "./types";
+import { type SubgraphClient, type RequestCompleted, type DeployRequestCompleted, type UserEvent, type OnChainRefund, type OnChainWithdrawal, type ClaimExecuted } from "./types";
 import { hexToBytes } from "../crypto/utils";
 
 interface GraphError {
@@ -18,6 +18,7 @@ interface HealthCheckData {
 }
 
 interface RequestCompletedEntity {
+  applicationId: string;
   requestId: string;
   status: string;
   errorCode: string;
@@ -28,6 +29,45 @@ interface RequestCompletedEntity {
 
 interface RequestCompletedData {
   requestCompleteds: RequestCompletedEntity[];
+}
+
+interface DeployRequestCompletedEntity {
+  applicationId: string;
+  requestId: string;
+  applicationFees: string;
+  status: string;
+  errorCode: string;
+  errorMessage: string;
+  blockNumber: string;
+}
+
+interface DeployRequestCompletedData {
+  deployRequestCompleteds: DeployRequestCompletedEntity[];
+}
+
+interface RefundEntity {
+  applicationId: string;
+  requestId: string;
+  to: string;
+  tokenAddress: string;
+  amount: string;
+  blockNumber: string;
+}
+
+interface WithdrawalEntity {
+  applicationId: string;
+  requestId: string;
+  to: string;
+  tokenAddress: string;
+  amount: string;
+  blockNumber: string;
+}
+
+interface ClaimEntity {
+  tokenAddress: string;
+  payee: string;
+  amount: string;
+  blockNumber: string;
 }
 
 interface UserEventEntity {
@@ -83,6 +123,7 @@ query HealthCheck {
     const query = `
 query($requestId: Bytes!) {
   requestCompleteds(where: { requestId: $requestId }, first: 1) {
+    applicationId
     requestId
     status
     errorCode
@@ -104,6 +145,7 @@ query($requestId: Bytes!) {
 
     const entity = resp.data.requestCompleteds[0];
     return {
+      applicationId: BigInt(entity.applicationId),
       requestId: entity.requestId,
       status: Number(entity.status),
       errorCode: Number(entity.errorCode),
@@ -113,8 +155,63 @@ query($requestId: Bytes!) {
     };
   }
 
+  async getDeployRequestCompleted(applicationId: bigint | undefined, requestId: string | undefined): Promise<DeployRequestCompleted | null> {
+    if (applicationId == undefined && requestId == undefined) {
+      throw new Error("At least one of applicationId or requestId must be provided");
+    }
+
+    const variables: Record<string, unknown> = {};
+    let varDefs = "";
+    const whereParts: string[] = [];
+
+    if (applicationId != undefined) {
+      varDefs += "$applicationId: BigInt!";
+      variables.applicationId = applicationId.toString();
+      whereParts.push("applicationId: $applicationId");
+    }
+    if (requestId != undefined) {
+      if (varDefs) varDefs += ", ";
+      varDefs += "$requestId: Bytes!";
+      variables.requestId = requestId.startsWith("0x") ? requestId : `0x${requestId}`;
+      whereParts.push("requestId: $requestId");
+    }
+
+    const query = `
+query(${varDefs}) {
+  deployRequestCompleteds(where: { ${whereParts.join(", ")} }, first: 1, orderBy: blockNumber, orderDirection: desc) {
+    applicationId
+    requestId
+    applicationFees
+    status
+    errorCode
+    errorMessage
+    blockNumber
+  }
+}`;
+
+    const resp = await this.doGraphQL<DeployRequestCompletedData>(query, variables);
+
+    if (resp.errors?.length) {
+      throw new Error(`subgraph returned errors: ${resp.errors[0].message}`);
+    }
+    if (resp.data.deployRequestCompleteds.length === 0) {
+      return null;
+    }
+
+    const entity = resp.data.deployRequestCompleteds[0];
+    return {
+      applicationId: BigInt(entity.applicationId),
+      requestId: entity.requestId,
+      applicationFees: BigInt(entity.applicationFees),
+      status: Number(entity.status),
+      errorCode: Number(entity.errorCode),
+      errorMessage: entity.errorMessage,
+      blockNumber: Number(entity.blockNumber),
+    };
+  }
+
   async getUserEvents(
-    applicationId: number,
+    applicationId: bigint,
     eventSubType: string | string[],
     limit: number,
     before?: bigint,
@@ -178,6 +275,121 @@ query($applicationId: BigInt!, $limit: Int!${varDefs}) {
       blockNumber: Number(entity.blockNumber),
       logIndex: Number(entity.logIndex),
       sortKey: BigInt(entity.sortKey),
+    }));
+  }
+
+  async getRefunds(applicationId: bigint, requestId: string | undefined, limit: number): Promise<OnChainRefund[]> {
+    if (limit <= 0) limit = 100;
+
+    const variables: Record<string, unknown> = {
+      appId: applicationId.toString(),
+      first: limit,
+    };
+
+    let extraVarDefs = "";
+    let where = "applicationId: $appId";
+    if (requestId != undefined) {
+      extraVarDefs = ", $reqId: Bytes!";
+      variables.reqId = requestId.startsWith("0x") ? requestId : `0x${requestId}`;
+      where += ", requestId: $reqId";
+    }
+
+    const query = `
+query($appId: BigInt!, $first: Int!${extraVarDefs}) {
+  onChainRefunds(first: $first, where: {${where}}, orderBy: blockNumber, orderDirection: desc) {
+    applicationId requestId to tokenAddress amount blockNumber
+  }
+}`;
+
+    type Response = { onChainRefunds: RefundEntity[] };
+    const resp = await this.doGraphQL<Response>(query, variables);
+    if (resp.errors?.length) {
+      throw new Error(`subgraph returned errors: ${resp.errors[0].message}`);
+    }
+
+    return resp.data.onChainRefunds.map((e) => ({
+      applicationId: BigInt(e.applicationId),
+      requestId: e.requestId,
+      to: e.to,
+      tokenAddress: e.tokenAddress,
+      amount: BigInt(e.amount),
+      blockNumber: Number(e.blockNumber),
+    }));
+  }
+
+  async getWithdrawals(applicationId: bigint, requestId: string | undefined, limit: number): Promise<OnChainWithdrawal[]> {
+    if (limit <= 0) limit = 100;
+
+    const variables: Record<string, unknown> = {
+      appId: applicationId.toString(),
+      first: limit,
+    };
+
+    let extraVarDefs = "";
+    let where = "applicationId: $appId";
+    if (requestId != undefined) {
+      extraVarDefs = ", $reqId: Bytes!";
+      variables.reqId = requestId.startsWith("0x") ? requestId : `0x${requestId}`;
+      where += ", requestId: $reqId";
+    }
+
+    const query = `
+query($appId: BigInt!, $first: Int!${extraVarDefs}) {
+  onChainWithdrawals(first: $first, where: {${where}}, orderBy: blockNumber, orderDirection: desc) {
+    applicationId requestId to tokenAddress amount blockNumber
+  }
+}`;
+
+    type Response = { onChainWithdrawals: WithdrawalEntity[] };
+    const resp = await this.doGraphQL<Response>(query, variables);
+    if (resp.errors?.length) {
+      throw new Error(`subgraph returned errors: ${resp.errors[0].message}`);
+    }
+
+    return resp.data.onChainWithdrawals.map((e) => ({
+      applicationId: BigInt(e.applicationId),
+      requestId: e.requestId,
+      to: e.to,
+      tokenAddress: e.tokenAddress,
+      amount: BigInt(e.amount),
+      blockNumber: Number(e.blockNumber),
+    }));
+  }
+
+  async getClaimsExecuted(payee: string, tokenAddress: string | undefined, limit: number): Promise<ClaimExecuted[]> {
+    if (limit <= 0) limit = 100;
+
+    const variables: Record<string, unknown> = {
+      payee: payee.toLowerCase(),
+      first: limit,
+    };
+
+    let extraVarDefs = "";
+    let where = "payee: $payee";
+    if (tokenAddress != undefined) {
+      extraVarDefs = ", $token: Bytes!";
+      variables.token = tokenAddress.toLowerCase();
+      where += ", tokenAddress: $token";
+    }
+
+    const query = `
+query($payee: Bytes!, $first: Int!${extraVarDefs}) {
+  claimExecuteds(first: $first, where: {${where}}, orderBy: blockNumber, orderDirection: desc) {
+    tokenAddress payee amount blockNumber
+  }
+}`;
+
+    type Response = { claimExecuteds: ClaimEntity[] };
+    const resp = await this.doGraphQL<Response>(query, variables);
+    if (resp.errors?.length) {
+      throw new Error(`subgraph returned errors: ${resp.errors[0].message}`);
+    }
+
+    return resp.data.claimExecuteds.map((e) => ({
+      tokenAddress: e.tokenAddress,
+      payee: e.payee,
+      amount: BigInt(e.amount),
+      blockNumber: Number(e.blockNumber),
     }));
   }
 

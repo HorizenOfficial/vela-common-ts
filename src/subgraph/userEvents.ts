@@ -32,7 +32,7 @@ export async function fetchAndDecryptUserEvents(
   client: SubgraphClient,
   teePublicKey: CryptoKey,
   privateKey: CryptoKey,
-  applicationId: number,
+  applicationId: bigint,
   eventSubType: string | string[],
   limit: number,
   filter?: (data: Uint8Array) => boolean,
