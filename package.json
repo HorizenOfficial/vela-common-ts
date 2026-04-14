@@ -1,6 +1,6 @@
 {
   "name": "@horizen/vela-common-ts",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "description": "TypeScript library for interacting with Vela smart contracts. Provides P-521 ECDH encryption and blockchain client for browser applications.",
   "type": "module",
   "main": "dist/index.js",
