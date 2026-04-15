@@ -10,3 +10,4 @@ export type { AuthorityRegistry } from "./AuthorityRegistry";
 export type { DefaultAuthority } from "./DefaultAuthority";
 export type { ProcessorEndpoint } from "./ProcessorEndpoint";
 export type { TeeAuthenticator } from "./TeeAuthenticator";
+export type { TokenAllowlist } from "./TokenAllowlist";

@@ -8,3 +8,4 @@ export type { INitroProver } from "./INitroProver";
 export type { IProcessorEndpoint } from "./IProcessorEndpoint";
 export type { ITeeAuthenticator } from "./ITeeAuthenticator";
 export type { ITeeAuthenticatorAdmin } from "./ITeeAuthenticatorAdmin";
+export type { ITokenAllowlist } from "./ITokenAllowlist";

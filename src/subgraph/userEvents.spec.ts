@@ -9,7 +9,7 @@ import { fetchAndDecryptUserEvents, setUserEventsPageSize } from "./userEvents";
 import { type UserEvent } from "./types";
 
 function makeEvent(
-  appId: number,
+  appId: bigint,
   requestId: string,
   encryptedData: Uint8Array,
   subType: string,
@@ -34,7 +34,7 @@ describe("fetchAndDecryptUserEvents", function () {
     const teeKey = await generateKeyPair();
     const userKey = await generateKeyPair();
 
-    const appId = 1;
+    const appId = 1n;
     const ev1Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("msg-1"));
     const ev2Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("msg-2"));
 
@@ -55,7 +55,7 @@ describe("fetchAndDecryptUserEvents", function () {
     const teeKey = await generateKeyPair();
     const userKey = await generateKeyPair();
 
-    const appId = 2;
+    const appId = 2n;
     const ev1Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("keep-this"));
     const ev2Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("drop-this"));
 
@@ -79,7 +79,7 @@ describe("fetchAndDecryptUserEvents", function () {
     const userKeyA = await generateKeyPair();
     const userKeyB = await generateKeyPair();
 
-    const appId = 3;
+    const appId = 3n;
     const ev1Cipher = await encrypt(teeKey.privateKey, userKeyA.publicKey, stringToBytes("user-a"));
     const ev2Cipher = await encrypt(teeKey.privateKey, userKeyB.publicKey, stringToBytes("user-b"));
 
@@ -108,7 +108,7 @@ describe("fetchAndDecryptUserEvents", function () {
       const teeKey = await generateKeyPair();
       const userKey = await generateKeyPair();
 
-      const appId = 3;
+      const appId = 3n;
       const ev1Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("skip-me"));
       const ev2Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("target"));
 
@@ -134,7 +134,7 @@ describe("fetchAndDecryptUserEvents", function () {
     const teeKey = await generateKeyPair();
     const userKey = await generateKeyPair();
 
-    const appId = 4;
+    const appId = 4n;
     const ev1Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("first"));
     const ev2Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("second"));
 
@@ -155,7 +155,7 @@ describe("fetchAndDecryptUserEvents", function () {
     const teeKey = await generateKeyPair();
     const userKey = await generateKeyPair();
 
-    const appId = 5;
+    const appId = 5n;
     const ev1Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("one"));
     const ev2Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("two"));
 
@@ -180,7 +180,7 @@ describe("fetchAndDecryptUserEvents", function () {
     const seed = randomBytes(65);
     const subtypes = await generateSubtypeSet(seed, DEFAULT_SUBTYPE_N);
 
-    const appId = 7;
+    const appId = 7n;
     const ev1Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("seeded-1"));
     const ev2Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("seeded-2"));
     const ev3Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("other-1"));
@@ -206,7 +206,7 @@ describe("fetchAndDecryptUserEvents", function () {
     const teeKey = await generateKeyPair();
     const userKey = await generateKeyPair();
 
-    const appId = 6;
+    const appId = 6n;
     const ev1Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("first-log"));
     const ev2Cipher = await encrypt(teeKey.privateKey, userKey.publicKey, stringToBytes("second-log"));
 

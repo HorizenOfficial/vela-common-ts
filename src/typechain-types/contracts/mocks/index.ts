@@ -2,5 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { FallbackFailure } from "./FallbackFailure";
+export type { FeeOnTransferERC20 } from "./FeeOnTransferERC20";
+export type { MockERC20 } from "./MockERC20";
+export type { MockERC20Permit } from "./MockERC20Permit";
 export type { MockTeeAuthenticator } from "./MockTeeAuthenticator";
 export type { NoAttestationTeeAuthenticator } from "./NoAttestationTeeAuthenticator";

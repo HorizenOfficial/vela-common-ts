@@ -33,7 +33,7 @@ Everything is re-exported from `src/index.ts`:
   - `wallet.ts`: derives P-521 key pairs from ethers.js Signers via HKDF (sign a challenge, use signature as IKM).
   - `utils.ts`: hex/bytes/string conversions.
 
-- **blockchain/** — `VelaClient` wraps two on-chain contracts (`ITeeAuthenticator`, `ProcessorEndpoint`) via typechain-types. Handles request submission, TEE encryption, on-chain event querying/decryption, and payment withdrawal.
+- **blockchain/** — `VelaClient` wraps two on-chain contracts (`ITeeAuthenticator`, `ProcessorEndpoint`) via typechain-types. Handles request submission (including deploy requests), ERC-20 token approval, TEE encryption, on-chain event querying/decryption, and claims.
 
 - **subgraph/** — `SubgraphClient` queries the same data (RequestCompleted, UserEvent) through a GraphQL subgraph instead of direct on-chain event filtering. Provides pagination via `sortKey` and batch decryption via `fetchAndDecryptUserEvents`.
 

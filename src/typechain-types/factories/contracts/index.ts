@@ -8,3 +8,4 @@ export { AuthorityRegistry__factory } from "./AuthorityRegistry__factory";
 export { DefaultAuthority__factory } from "./DefaultAuthority__factory";
 export { ProcessorEndpoint__factory } from "./ProcessorEndpoint__factory";
 export { TeeAuthenticator__factory } from "./TeeAuthenticator__factory";
+export { TokenAllowlist__factory } from "./TokenAllowlist__factory";

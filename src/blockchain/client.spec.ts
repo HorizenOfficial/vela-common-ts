@@ -1,4 +1,5 @@
-import { JsonRpcProvider } from "ethers";
+import { JsonRpcProvider, ZeroHash } from "ethers";
+import { ETH_TOKEN } from "../constants";
 import ganache, { Server } from "ganache";
 import assert from "assert";
 import { VelaClient, RequestType } from "../blockchain/client";
@@ -15,8 +16,11 @@ let client: VelaClient;
 let processorEndpoint: ProcessorEndpoint;
 let authorityRegistry: AuthorityRegistry;
 let teePubSecp: P521KeyPair;
+let applicationId: bigint;
 
 const NODE_PORT = 9545
+const BYTES32_ZERO = ZeroHash;
+const INITIAL_STATE_ROOT = "0x0000000000000000000000000000000000000000000000000000000000000001";
 
 describe("Vela Client test", function () {
   this.timeout(20000);
@@ -48,6 +52,28 @@ describe("Vela Client test", function () {
     processorEndpoint = await new ProcessorEndpoint__factory(signer).deploy(teeAuthenticator, authorityRegistry, signer, signer, 0);
     await processorEndpoint.waitForDeployment();
 
+    //bootstrap an application: submitDeployRequest then finalize via stateUpdate
+    const deployTx = await processorEndpoint.submitDeployRequest(0, "0x00");
+    const deployReceipt = await deployTx.wait();
+    const iface = processorEndpoint.interface;
+    let deployRequestId: string | undefined;
+    for(const log of deployReceipt!.logs) {
+      try {
+        const parsed = iface.parseLog({topics: Array.from(log.topics), data: log.data});
+        if(parsed?.name === "DeployRequestSubmitted") {
+          applicationId = parsed.args.applicationId;
+          deployRequestId = parsed.args.requestId;
+          break;
+        }
+      } catch { continue; }
+    }
+    if(!deployRequestId) throw new Error("DeployRequestSubmitted not found");
+
+    await processorEndpoint.stateUpdate(
+      applicationId, BYTES32_ZERO, INITIAL_STATE_ROOT, deployRequestId,
+      [], [], [], 0, 0, 0, "", "0x"
+    );
+
     client = new VelaClient(signer, true, await teeAuthenticator.getAddress(), await processorEndpoint.getAddress());
   });
 
@@ -74,23 +100,31 @@ describe("Vela Client test", function () {
     assert.equal(bytesToString(decryptedData), message);
   });
 
+  it("submitDeployRequest", async () => {
+    const wasmSha256 = new Uint8Array(32);
+    wasmSha256.fill(0xab);
+    const receipt = await client.submitDeployRequestAndWaitForRequestId(0, BigInt(0), wasmSha256, {foo: "bar"});
+    assert.notEqual(receipt.requestId, undefined);
+    assert.notEqual(receipt.transactionReceipt, undefined);
+  })
+
   it("submitRequest", async () => {
-    const submitResponse = await client.submitRequestAndWaitForRequestId(0, 1, RequestType.PROCESS, Uint8Array.from([1, 2, 3]), BigInt(10), BigInt(0));
+    const submitResponse = await client.submitRequestAndWaitForRequestId(0, applicationId, RequestType.PROCESS, Uint8Array.from([1, 2, 3]), ETH_TOKEN, BigInt(10), BigInt(0));
     assert.notEqual(submitResponse.requestId, undefined);
     assert.notEqual(submitResponse.transactionReceipt, undefined);
   })
 
-  it("getPendingPayments", async () => {
+  it("getPendingClaims", async () => {
     const signer = await provider.getSigner(0);
     const address = await signer.getAddress();
-    const pending = await client.getPendingPayments(address);
+    const pending = await client.getPendingClaims(ETH_TOKEN, address);
     assert.equal(pending, BigInt(0));
   });
 
-  it("withdrawPayments", async () => {
+  it("claim", async () => {
     const signer = await provider.getSigner(0);
     const address = await signer.getAddress();
-    const tx = await client.withdrawPayments(address);
+    const tx = await client.claim(ETH_TOKEN, address);
     const receipt = await tx.wait();
     assert.notEqual(receipt, undefined);
     assert.equal(receipt!.status, 1);
