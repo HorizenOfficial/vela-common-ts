@@ -23,14 +23,56 @@ import type {
 
 export declare namespace Structs {
   export type WithdrawalRequestStruct = {
+    tokenAddress: AddressLike;
     receiver: AddressLike;
     amount: BigNumberish;
   };
 
   export type WithdrawalRequestStructOutput = [
+    tokenAddress: string,
     receiver: string,
     amount: bigint
-  ] & { receiver: string; amount: bigint };
+  ] & { tokenAddress: string; receiver: string; amount: bigint };
+
+  export type SignatureParamsStruct = {
+    applicationId: BigNumberish;
+    prevStateRoot: BytesLike;
+    newStateRoot: BytesLike;
+    processedRequestId: BytesLike;
+    events: BytesLike[];
+    eventSubTypes: string[];
+    withdrawalRequests: Structs.WithdrawalRequestStruct[];
+    refundAmount: BigNumberish;
+    applicationFee: BigNumberish;
+    errorCode: BigNumberish;
+    errorMsg: string;
+  };
+
+  export type SignatureParamsStructOutput = [
+    applicationId: bigint,
+    prevStateRoot: string,
+    newStateRoot: string,
+    processedRequestId: string,
+    events: string[],
+    eventSubTypes: string[],
+    withdrawalRequests: Structs.WithdrawalRequestStructOutput[],
+    refundAmount: bigint,
+    applicationFee: bigint,
+    errorCode: bigint,
+    errorMsg: string
+  ] & {
+    applicationId: bigint;
+    prevStateRoot: string;
+    newStateRoot: string;
+    processedRequestId: string;
+    events: string[];
+    eventSubTypes: string[];
+    withdrawalRequests: Structs.WithdrawalRequestStructOutput[];
+    refundAmount: bigint;
+    applicationFee: bigint;
+    errorCode: bigint;
+    errorMsg: string;
+  };
 }
 
 export interface MockTeeAuthenticatorInterface extends Interface {
@@ -45,18 +87,7 @@ export interface MockTeeAuthenticatorInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "checkSignature",
-    values: [
-      BigNumberish,
-      BytesLike,
-      BytesLike,
-      BytesLike,
-      BytesLike[],
-      string[],
-      Structs.WithdrawalRequestStruct[],
-      BigNumberish,
-      BigNumberish,
-      BytesLike
-    ]
+    values: [Structs.SignatureParamsStruct, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getPubSecp521r1",
@@ -135,18 +166,7 @@ export interface MockTeeAuthenticator extends BaseContract {
   ): Promise<this>;
 
   checkSignature: TypedContractMethod<
-    [
-      arg0: BigNumberish,
-      arg1: BytesLike,
-      arg2: BytesLike,
-      arg3: BytesLike,
-      arg4: BytesLike[],
-      arg5: string[],
-      arg6: Structs.WithdrawalRequestStruct[],
-      arg7: BigNumberish,
-      arg8: BigNumberish,
-      arg9: BytesLike
-    ],
+    [arg0: Structs.SignatureParamsStruct, arg1: BytesLike],
     [boolean],
     "view"
   >;
@@ -166,18 +186,7 @@ export interface MockTeeAuthenticator extends BaseContract {
   getFunction(
     nameOrSignature: "checkSignature"
   ): TypedContractMethod<
-    [
-      arg0: BigNumberish,
-      arg1: BytesLike,
-      arg2: BytesLike,
-      arg3: BytesLike,
-      arg4: BytesLike[],
-      arg5: string[],
-      arg6: Structs.WithdrawalRequestStruct[],
-      arg7: BigNumberish,
-      arg8: BigNumberish,
-      arg9: BytesLike
-    ],
+    [arg0: Structs.SignatureParamsStruct, arg1: BytesLike],
     [boolean],
     "view"
   >;

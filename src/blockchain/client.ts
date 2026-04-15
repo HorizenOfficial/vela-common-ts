@@ -1,11 +1,13 @@
-import { AddressLike, ContractTransactionReceipt, ContractTransactionResponse } from "ethers";
+import { ContractTransactionReceipt, ContractTransactionResponse } from "ethers";
 import { Signer } from "ethers";
 import { ITeeAuthenticator, ITeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types";
+import { IERC20__factory } from "../typechain-types/factories/@openzeppelin/contracts/token/ERC20/IERC20__factory";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { decrypt, encrypt, importPublicKeyFromHex, P521KeyPair } from "../crypto/p521";
-import { hexToBytes } from "../crypto/utils";
+import { bytesToHex, hexToBytes, stringToBytes } from "../crypto/utils";
 import { TypedContractEvent, TypedEventLog } from "../typechain-types/common";
 import { UserEventEvent } from "../typechain-types/contracts/ProcessorEndpoint";
+import { ETH_TOKEN } from "../constants";
 
 export enum RequestType {
   DEPLOYAPP = 0,
@@ -24,10 +26,21 @@ export class RequestReceipt {
 export class RequestResult {
   constructor(
     public requestId: string,
+    public applicationId: bigint,
+    public applicationFees: bigint,
     public status: bigint,
     public errorCode: bigint | undefined,
     public errorMessage: string | undefined,
   ) {}
+}
+
+const DEPLOY_MODE_ARTIFACT_REF = "artifact_ref";
+
+interface DeployDescriptor {
+  mode: string;
+  artifactId: string;
+  wasmSha256: string;
+  constructorParams?: unknown;
 }
 
 export class VelaClient {
@@ -48,29 +61,86 @@ export class VelaClient {
     return await deriveP521PrivateKeyFromSigner(this.signer, this.useAlternativeSign);
   }
 
-  async submitRequest(protocolVersion: number, applicationId: number, requestType: RequestType, payload: Uint8Array, depositAmount: bigint, maxFeeValue: bigint): Promise<ContractTransactionResponse> {
+  async submitRequest(protocolVersion: number, applicationId: bigint, requestType: RequestType, payload: Uint8Array, tokenAddress: string, assetAmount: bigint, maxFeeValue: bigint): Promise<ContractTransactionResponse> {
+    // For ETH deposits msg.value covers both fee and asset; for ERC-20 deposits the asset is
+    // pulled via transferFrom and msg.value carries only the fee (caller must pre-approve).
+    const isEth = tokenAddress === ETH_TOKEN;
+    const value = isEth ? assetAmount + maxFeeValue : maxFeeValue;
     const tx = await this.processorEndpoint.submitRequest(
       protocolVersion,
       applicationId,
       requestType.valueOf(),
       payload,
-      depositAmount,
+      tokenAddress,
+      assetAmount,
       maxFeeValue,
-      {value: depositAmount + maxFeeValue}
+      {value}
     );
     return tx;
   }
 
-  async submitRequestAndWaitForRequestId(protocolVersion: number, applicationId: number, requestType: RequestType, payload: Uint8Array, depositAmount: bigint, maxFeeValue: bigint): Promise<RequestReceipt> {
-    const tx = await this.submitRequest(protocolVersion, applicationId, requestType, payload, depositAmount, maxFeeValue);
-    //get request id from event
+  async submitRequestAndWaitForRequestId(protocolVersion: number, applicationId: bigint, requestType: RequestType, payload: Uint8Array, tokenAddress: string, assetAmount: bigint, maxFeeValue: bigint): Promise<RequestReceipt> {
+    const tx = await this.submitRequest(protocolVersion, applicationId, requestType, payload, tokenAddress, assetAmount, maxFeeValue);
     const receipt = await tx.wait();
-    const events = receipt?.logs;
-    const requestId = events && events.length > 0 ? events[0].topics[1] : undefined;
-    if(!requestId) {
-      throw new Error("Request ID not found in transaction events");
+    if(!receipt) {
+      throw new Error("Transaction receipt not available");
     }
-    return new RequestReceipt(requestId, receipt!);
+    //find the RequestSubmitted event and read its requestId arg
+    const iface = this.processorEndpoint.interface;
+    for(const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog({topics: Array.from(log.topics), data: log.data});
+        if(parsed?.name === "RequestSubmitted") {
+          return new RequestReceipt(parsed.args.requestId as string, receipt);
+        }
+      } catch {
+        continue;
+      }
+    }
+    throw new Error("RequestSubmitted event not found in transaction receipt");
+  }
+
+  async submitDeployRequest(protocolVersion: number, maxFeeValue: bigint, wasmSha256: Uint8Array, constructorParams?: unknown): Promise<ContractTransactionResponse> {
+    const payload = this.buildDeployPayload(wasmSha256, constructorParams);
+    return await this.processorEndpoint.submitDeployRequest(
+      protocolVersion,
+      payload,
+      {value: maxFeeValue}
+    );
+  }
+
+  async submitDeployRequestAndWaitForRequestId(protocolVersion: number, maxFeeValue: bigint, wasmSha256: Uint8Array, constructorParams?: unknown): Promise<RequestReceipt> {
+    const tx = await this.submitDeployRequest(protocolVersion, maxFeeValue, wasmSha256, constructorParams);
+    const receipt = await tx.wait();
+    if(!receipt) {
+      throw new Error("Transaction receipt not available");
+    }
+    //find the DeployRequestSubmitted event and read its requestId arg (not indexed — in log data)
+    const iface = this.processorEndpoint.interface;
+    for(const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog({topics: Array.from(log.topics), data: log.data});
+        if(parsed?.name === "DeployRequestSubmitted") {
+          return new RequestReceipt(parsed.args.requestId as string, receipt);
+        }
+      } catch {
+        continue;
+      }
+    }
+    throw new Error("DeployRequestSubmitted event not found in transaction receipt");
+  }
+
+  private buildDeployPayload(wasmSha256: Uint8Array, constructorParams?: unknown): Uint8Array {
+    const sha256Hex = bytesToHex(wasmSha256);
+    const descriptor: DeployDescriptor = {
+      mode: DEPLOY_MODE_ARTIFACT_REF,
+      artifactId: "sha256:" + sha256Hex,
+      wasmSha256: sha256Hex,
+    };
+    if (constructorParams !== undefined) {
+      descriptor.constructorParams = constructorParams;
+    }
+    return stringToBytes(JSON.stringify(descriptor));
   }
 
   async getTeePublicKey(): Promise<string> {
@@ -88,9 +158,10 @@ export class VelaClient {
     if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
       throw new Error("fromBlock cannot be less than toBlock");
     }
-    //get RequestCompleted events from Processor Endpoint
+    //get RequestCompleted events from Processor Endpoint.
+    //RequestCompleted(uint64 indexed applicationId, bytes32 indexed requestId, ...) — requestId is the second indexed topic.
     const events = await this.processorEndpoint.queryFilter(
-      this.processorEndpoint.filters.RequestCompleted(requestId),
+      this.processorEndpoint.filters.RequestCompleted(undefined, requestId),
       toBlock,
       fromBlock
     );
@@ -107,6 +178,42 @@ export class VelaClient {
     const event = validEvents[0];
     return new RequestResult(
       event.args.requestId,
+      event.args.applicationId,
+      event.args.applicationFees,
+      event.args.status,
+      event.args.errorCode || undefined,
+      event.args.errorMessage || undefined
+    );
+  };
+
+  async getDeployRequestCompletedEvent(applicationId: bigint | undefined, requestId: string | undefined, fromBlock: number | undefined, toBlock: number | undefined): Promise<RequestResult | undefined> {
+    if(applicationId == undefined && requestId == undefined) {
+      throw new Error("At least one of applicationId or requestId must be provided");
+    }
+    if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
+      throw new Error("fromBlock cannot be less than toBlock");
+    }
+    //DeployRequestCompleted(uint64 indexed applicationId, bytes32 indexed requestId, ...) — same indexed layout as RequestCompleted.
+    const events = await this.processorEndpoint.queryFilter(
+      this.processorEndpoint.filters.DeployRequestCompleted(applicationId ?? undefined, requestId ?? undefined),
+      toBlock,
+      fromBlock
+    );
+
+    const validEvents = events.filter(e => !e.removed);
+
+    if(validEvents.length === 0) {
+      return undefined;
+    }
+    if(validEvents.length > 1) {
+      throw new Error("Multiple DeployRequestCompleted events found");
+    }
+
+    const event = validEvents[0];
+    return new RequestResult(
+      event.args.requestId,
+      event.args.applicationId,
+      event.args.applicationFees,
       event.args.status,
       event.args.errorCode || undefined,
       event.args.errorMessage || undefined
@@ -128,12 +235,20 @@ export class VelaClient {
     return await this.decryptAndFilterEvents(events, filter, stopAtFirst);
   }
 
-  async getPendingPayments(address: AddressLike): Promise<bigint> {
-    return await this.processorEndpoint.payments(address);
+  async approveToken(tokenAddress: string, amount: bigint): Promise<ContractTransactionResponse> {
+    if(tokenAddress === ETH_TOKEN) {
+      throw new Error("Cannot approve ETH token address");
+    }
+    const token = IERC20__factory.connect(tokenAddress, this.signer);
+    return await token.approve(await this.processorEndpoint.getAddress(), amount);
   }
 
-  async withdrawPayments(payee: AddressLike): Promise<ContractTransactionResponse> {
-    return await this.processorEndpoint.withdrawPayments(payee);
+  async getPendingClaims(tokenAddress: string, payee: string): Promise<bigint> {
+    return await this.processorEndpoint.pendingClaims(tokenAddress, payee);
+  }
+
+  async claim(tokenAddress: string, payee: string): Promise<ContractTransactionResponse> {
+    return await this.processorEndpoint.claim(tokenAddress, payee);
   }
 
   async decryptAndFilterEvents(events: TypedEventLog<TypedContractEvent<UserEventEvent.InputTuple, UserEventEvent.OutputTuple, UserEventEvent.OutputObject>>[], filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {

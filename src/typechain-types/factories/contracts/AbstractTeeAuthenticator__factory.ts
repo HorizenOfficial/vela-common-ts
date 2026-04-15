@@ -57,61 +57,83 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint64",
-        name: "applicationId",
-        type: "uint64",
-      },
-      {
-        internalType: "bytes32",
-        name: "prevStateRoot",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes32",
-        name: "newStateRoot",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes32",
-        name: "processedRequestId",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes[]",
-        name: "events",
-        type: "bytes[]",
-      },
-      {
-        internalType: "string[]",
-        name: "eventSubTypes",
-        type: "string[]",
-      },
-      {
         components: [
           {
-            internalType: "address payable",
-            name: "receiver",
-            type: "address",
+            internalType: "uint64",
+            name: "applicationId",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes32",
+            name: "prevStateRoot",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "newStateRoot",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "processedRequestId",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes[]",
+            name: "events",
+            type: "bytes[]",
+          },
+          {
+            internalType: "string[]",
+            name: "eventSubTypes",
+            type: "string[]",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "tokenAddress",
+                type: "address",
+              },
+              {
+                internalType: "address payable",
+                name: "receiver",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct Structs.WithdrawalRequest[]",
+            name: "withdrawalRequests",
+            type: "tuple[]",
           },
           {
             internalType: "uint256",
-            name: "amount",
+            name: "refundAmount",
             type: "uint256",
           },
+          {
+            internalType: "uint256",
+            name: "applicationFee",
+            type: "uint256",
+          },
+          {
+            internalType: "enum Structs.ErrorCode",
+            name: "errorCode",
+            type: "uint8",
+          },
+          {
+            internalType: "string",
+            name: "errorMsg",
+            type: "string",
+          },
         ],
-        internalType: "struct Structs.WithdrawalRequest[]",
-        name: "withdrawalRequests",
-        type: "tuple[]",
-      },
-      {
-        internalType: "uint256",
-        name: "refundAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "applicationFee",
-        type: "uint256",
+        internalType: "struct Structs.SignatureParams",
+        name: "params",
+        type: "tuple",
       },
       {
         internalType: "bytes",

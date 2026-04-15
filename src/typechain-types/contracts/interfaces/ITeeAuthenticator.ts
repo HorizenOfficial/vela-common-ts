@@ -23,14 +23,56 @@ import type {
 
 export declare namespace Structs {
   export type WithdrawalRequestStruct = {
+    tokenAddress: AddressLike;
     receiver: AddressLike;
     amount: BigNumberish;
   };
 
   export type WithdrawalRequestStructOutput = [
+    tokenAddress: string,
     receiver: string,
     amount: bigint
-  ] & { receiver: string; amount: bigint };
+  ] & { tokenAddress: string; receiver: string; amount: bigint };
+
+  export type SignatureParamsStruct = {
+    applicationId: BigNumberish;
+    prevStateRoot: BytesLike;
+    newStateRoot: BytesLike;
+    processedRequestId: BytesLike;
+    events: BytesLike[];
+    eventSubTypes: string[];
+    withdrawalRequests: Structs.WithdrawalRequestStruct[];
+    refundAmount: BigNumberish;
+    applicationFee: BigNumberish;
+    errorCode: BigNumberish;
+    errorMsg: string;
+  };
+
+  export type SignatureParamsStructOutput = [
+    applicationId: bigint,
+    prevStateRoot: string,
+    newStateRoot: string,
+    processedRequestId: string,
+    events: string[],
+    eventSubTypes: string[],
+    withdrawalRequests: Structs.WithdrawalRequestStructOutput[],
+    refundAmount: bigint,
+    applicationFee: bigint,
+    errorCode: bigint,
+    errorMsg: string
+  ] & {
+    applicationId: bigint;
+    prevStateRoot: string;
+    newStateRoot: string;
+    processedRequestId: string;
+    events: string[];
+    eventSubTypes: string[];
+    withdrawalRequests: Structs.WithdrawalRequestStructOutput[];
+    refundAmount: bigint;
+    applicationFee: bigint;
+    errorCode: bigint;
+    errorMsg: string;
+  };
 }
 
 export interface ITeeAuthenticatorInterface extends Interface {
@@ -40,18 +82,7 @@ export interface ITeeAuthenticatorInterface extends Interface {
 
   encodeFunctionData(
     functionFragment: "checkSignature",
-    values: [
-      BigNumberish,
-      BytesLike,
-      BytesLike,
-      BytesLike,
-      BytesLike[],
-      string[],
-      Structs.WithdrawalRequestStruct[],
-      BigNumberish,
-      BigNumberish,
-      BytesLike
-    ]
+    values: [Structs.SignatureParamsStruct, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getPubSecp521r1",
@@ -120,18 +151,7 @@ export interface ITeeAuthenticator extends BaseContract {
   ): Promise<this>;
 
   checkSignature: TypedContractMethod<
-    [
-      applicationId: BigNumberish,
-      prevStateRoot: BytesLike,
-      newStateRoot: BytesLike,
-      processedRequestId: BytesLike,
-      events: BytesLike[],
-      eventSubTypes: string[],
-      withdrawalRequests: Structs.WithdrawalRequestStruct[],
-      refundAmount: BigNumberish,
-      applicationFee: BigNumberish,
-      signature: BytesLike
-    ],
+    [params: Structs.SignatureParamsStruct, signature: BytesLike],
     [boolean],
     "view"
   >;
@@ -147,18 +167,7 @@ export interface ITeeAuthenticator extends BaseContract {
   getFunction(
     nameOrSignature: "checkSignature"
   ): TypedContractMethod<
-    [
-      applicationId: BigNumberish,
-      prevStateRoot: BytesLike,
-      newStateRoot: BytesLike,
-      processedRequestId: BytesLike,
-      events: BytesLike[],
-      eventSubTypes: string[],
-      withdrawalRequests: Structs.WithdrawalRequestStruct[],
-      refundAmount: BigNumberish,
-      applicationFee: BigNumberish,
-      signature: BytesLike
-    ],
+    [params: Structs.SignatureParamsStruct, signature: BytesLike],
     [boolean],
     "view"
   >;
