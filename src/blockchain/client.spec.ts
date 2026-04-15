@@ -1,4 +1,4 @@
-import { JsonRpcProvider } from "ethers";
+import { JsonRpcProvider, ZeroHash } from "ethers";
 import { ETH_TOKEN } from "../constants";
 import ganache, { Server } from "ganache";
 import assert from "assert";
@@ -19,7 +19,7 @@ let teePubSecp: P521KeyPair;
 let applicationId: bigint;
 
 const NODE_PORT = 9545
-const BYTES32_ZERO = "0x0000000000000000000000000000000000000000000000000000000000000000";
+const BYTES32_ZERO = ZeroHash;
 const INITIAL_STATE_ROOT = "0x0000000000000000000000000000000000000000000000000000000000000001";
 
 describe("Vela Client test", function () {
