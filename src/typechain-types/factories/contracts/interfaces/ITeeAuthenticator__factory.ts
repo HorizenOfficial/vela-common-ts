@@ -39,14 +39,38 @@ const _abi = [
             type: "bytes32",
           },
           {
-            internalType: "bytes[]",
-            name: "events",
-            type: "bytes[]",
+            components: [
+              {
+                internalType: "bytes[]",
+                name: "events",
+                type: "bytes[]",
+              },
+              {
+                internalType: "string[]",
+                name: "subTypes",
+                type: "string[]",
+              },
+            ],
+            internalType: "struct Structs.EventData",
+            name: "userEvents",
+            type: "tuple",
           },
           {
-            internalType: "string[]",
-            name: "eventSubTypes",
-            type: "string[]",
+            components: [
+              {
+                internalType: "bytes[]",
+                name: "events",
+                type: "bytes[]",
+              },
+              {
+                internalType: "string[]",
+                name: "subTypes",
+                type: "string[]",
+              },
+            ],
+            internalType: "struct Structs.EventData",
+            name: "appEvents",
+            type: "tuple",
           },
           {
             components: [

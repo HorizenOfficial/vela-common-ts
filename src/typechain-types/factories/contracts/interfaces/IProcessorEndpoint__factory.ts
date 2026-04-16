@@ -130,6 +130,37 @@ const _abi = [
         type: "bytes32",
       },
       {
+        indexed: true,
+        internalType: "string",
+        name: "eventSubType",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "AppEvent",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "requestId",
+        type: "bytes32",
+      },
+      {
         indexed: false,
         internalType: "uint256",
         name: "applicationFees",
@@ -946,14 +977,38 @@ const _abi = [
         type: "bytes32",
       },
       {
-        internalType: "bytes[]",
-        name: "events",
-        type: "bytes[]",
+        components: [
+          {
+            internalType: "bytes[]",
+            name: "events",
+            type: "bytes[]",
+          },
+          {
+            internalType: "string[]",
+            name: "subTypes",
+            type: "string[]",
+          },
+        ],
+        internalType: "struct Structs.EventData",
+        name: "userEventData",
+        type: "tuple",
       },
       {
-        internalType: "string[]",
-        name: "eventSubTypes",
-        type: "string[]",
+        components: [
+          {
+            internalType: "bytes[]",
+            name: "events",
+            type: "bytes[]",
+          },
+          {
+            internalType: "string[]",
+            name: "subTypes",
+            type: "string[]",
+          },
+        ],
+        internalType: "struct Structs.EventData",
+        name: "appEventData",
+        type: "tuple",
       },
       {
         components: [

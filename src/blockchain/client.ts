@@ -6,7 +6,7 @@ import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { decrypt, encrypt, importPublicKeyFromHex, P521KeyPair } from "../crypto/p521";
 import { bytesToHex, hexToBytes, stringToBytes } from "../crypto/utils";
 import { TypedContractEvent, TypedEventLog } from "../typechain-types/common";
-import { UserEventEvent } from "../typechain-types/contracts/ProcessorEndpoint";
+import { UserEventEvent, AppEventEvent } from "../typechain-types/contracts/ProcessorEndpoint";
 import { ETH_TOKEN } from "../constants";
 
 export enum RequestType {
@@ -233,6 +233,26 @@ export class VelaClient {
     );
 
     return await this.decryptAndFilterEvents(events, filter, stopAtFirst);
+  }
+
+  async getAppEvents(fromBlock: number | undefined, toBlock: number | undefined, applicationId: string, requestId: string | undefined, eventSubType: string | undefined): Promise<{ requestId: string; eventSubType: string; data: Uint8Array }[]> {
+    if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
+      throw new Error("fromBlock cannot be less than toBlock");
+    }
+
+    const events = await this.processorEndpoint.queryFilter(
+      this.processorEndpoint.filters.AppEvent(applicationId, requestId ?? undefined, eventSubType, undefined),
+      toBlock,
+      fromBlock
+    );
+
+    return events
+      .filter(e => !e.removed)
+      .map(e => ({
+        requestId: e.args.requestId,
+        eventSubType: e.args.eventSubType,
+        data: hexToBytes(e.args.data),
+      }));
   }
 
   async approveToken(tokenAddress: string, amount: bigint): Promise<ContractTransactionResponse> {

@@ -1,4 +1,4 @@
-import { type SubgraphClient, type RequestCompleted, type DeployRequestCompleted, type UserEvent, type OnChainRefund, type OnChainWithdrawal, type ClaimExecuted } from "./types";
+import { type SubgraphClient, type RequestCompleted, type DeployRequestCompleted, type UserEvent, type AppEvent, type OnChainRefund, type OnChainWithdrawal, type ClaimExecuted } from "./types";
 import { userEventSortKey } from "./userEvents";
 
 /** Mock subgraph client that returns canned responses for tests. */
@@ -9,6 +9,7 @@ export class MockSubgraphClient implements SubgraphClient {
   private withdrawals: OnChainWithdrawal[] = [];
   private claims: ClaimExecuted[] = [];
   private events = new Map<bigint, UserEvent[]>();
+  private appEvents = new Map<bigint, AppEvent[]>();
 
   withRequestCompleted(rc: RequestCompleted): this {
     this.requests.set(rc.requestId, rc);
@@ -37,6 +38,11 @@ export class MockSubgraphClient implements SubgraphClient {
 
   withUserEvents(applicationId: bigint, events: UserEvent[]): this {
     this.events.set(applicationId, events);
+    return this;
+  }
+
+  withAppEvents(applicationId: bigint, events: AppEvent[]): this {
+    this.appEvents.set(applicationId, events);
     return this;
   }
 
@@ -90,6 +96,44 @@ export class MockSubgraphClient implements SubgraphClient {
       const kb = userEventSortKey(b);
       if (kb > ka) return 1;
       if (kb < ka) return -1;
+      return 0;
+    });
+
+    if (limit <= 0) limit = 10;
+    if (limit > 1000) limit = 1000;
+
+    return filtered.slice(0, limit);
+  }
+
+  async getAppEvents(
+    applicationId: bigint,
+    eventSubType: string | string[],
+    limit: number,
+    before?: bigint,
+  ): Promise<AppEvent[]> {
+    const all = this.appEvents.get(applicationId);
+    if (!all) return [];
+
+    let filtered = [...all];
+
+    if (Array.isArray(eventSubType)) {
+      if (eventSubType.length > 0) {
+        const set = new Set(eventSubType);
+        filtered = filtered.filter((ev) => set.has(ev.eventSubType));
+      }
+    } else {
+      const trimmedSubType = eventSubType.trim();
+      if (trimmedSubType) {
+        filtered = filtered.filter((ev) => ev.eventSubType === trimmedSubType);
+      }
+    }
+    if (before != null) {
+      filtered = filtered.filter((ev) => ev.sortKey < before);
+    }
+
+    filtered.sort((a, b) => {
+      if (b.sortKey > a.sortKey) return 1;
+      if (b.sortKey < a.sortKey) return -1;
       return 0;
     });
 
