@@ -226,6 +226,7 @@ query(${varDefs}) {
 
   async getUserEvents(
     applicationId: bigint,
+    requestId: string | undefined,
     eventSubType: string | string[],
     limit: number,
     before?: bigint,
@@ -256,6 +257,11 @@ query(${varDefs}) {
       varDefs += ", $before: BigInt!";
       variables.before = before.toString();
       whereParts.push("sortKey_lt: $before");
+    }
+    if (requestId != undefined) {
+      varDefs += ", $requestId: Bytes!";
+      variables.requestId = requestId.startsWith("0x") ? requestId : `0x${requestId}`;
+      whereParts.push("requestId: $requestId");
     }
 
     const query = `
@@ -294,6 +300,7 @@ query($applicationId: BigInt!, $limit: Int!${varDefs}) {
 
   async getAppEvents(
     applicationId: bigint,
+    requestId: string | undefined,
     eventSubType: string | string[],
     limit: number,
     before?: bigint,
@@ -324,6 +331,11 @@ query($applicationId: BigInt!, $limit: Int!${varDefs}) {
       varDefs += ", $before: BigInt!";
       variables.before = before.toString();
       whereParts.push("sortKey_lt: $before");
+    }
+    if (requestId != undefined) {
+      varDefs += ", $requestId: Bytes!";
+      variables.requestId = requestId.startsWith("0x") ? requestId : `0x${requestId}`;
+      whereParts.push("requestId: $requestId");
     }
 
     const query = `

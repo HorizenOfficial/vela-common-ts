@@ -220,7 +220,7 @@ export class VelaClient {
     );
   };
 
-  async getCurrentUserEvents(fromBlock: number | undefined, toBlock: number | undefined, applicationId: string, eventSubType: string | undefined, filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
+  async getCurrentUserEvents(fromBlock: number | undefined, toBlock: number | undefined, applicationId: bigint, requestId: string | undefined, eventSubType: string | undefined, filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
     // eventSubType must be a bytes32 hex value (use ethers.encodeBytes32String() to convert from a readable string)
     if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
       throw new Error("fromBlock cannot be less than toBlock");
@@ -228,7 +228,7 @@ export class VelaClient {
 
     //get UserEvent events from Processor Endpoint
     const events = await this.processorEndpoint.queryFilter(
-      this.processorEndpoint.filters.UserEvent(applicationId, undefined, eventSubType, undefined),
+      this.processorEndpoint.filters.UserEvent(applicationId, requestId, eventSubType, undefined),
       toBlock,
       fromBlock
     );
@@ -236,14 +236,14 @@ export class VelaClient {
     return await this.decryptAndFilterEvents(events, filter, stopAtFirst);
   }
 
-  async getAppEvents(fromBlock: number | undefined, toBlock: number | undefined, applicationId: string, requestId: string | undefined, eventSubType: string | undefined): Promise<{ requestId: string; eventSubType: string; data: Uint8Array }[]> {
+  async getAppEvents(fromBlock: number | undefined, toBlock: number | undefined, applicationId: bigint, requestId: string | undefined, eventSubType: string | undefined): Promise<{ requestId: string; eventSubType: string; data: Uint8Array }[]> {
     // eventSubType must be a bytes32 hex value (use ethers.encodeBytes32String() to convert from a readable string)
     if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
       throw new Error("fromBlock cannot be less than toBlock");
     }
 
     const events = await this.processorEndpoint.queryFilter(
-      this.processorEndpoint.filters.AppEvent(applicationId, requestId ?? undefined, eventSubType, undefined),
+      this.processorEndpoint.filters.AppEvent(applicationId, requestId, eventSubType, undefined),
       toBlock,
       fromBlock
     );

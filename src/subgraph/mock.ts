@@ -66,6 +66,7 @@ export class MockSubgraphClient implements SubgraphClient {
 
   async getUserEvents(
     applicationId: bigint,
+    requestId: string | undefined,
     eventSubType: string | string[],
     limit: number,
     before?: bigint,
@@ -89,6 +90,10 @@ export class MockSubgraphClient implements SubgraphClient {
     if (before != null) {
       filtered = filtered.filter((ev) => userEventSortKey(ev) < before);
     }
+    if (requestId != undefined) {
+      const normalized = requestId.startsWith("0x") ? requestId : `0x${requestId}`;
+      filtered = filtered.filter((ev) => ev.requestId === normalized);
+    }
 
     // Sort descending by sortKey
     filtered.sort((a, b) => {
@@ -107,6 +112,7 @@ export class MockSubgraphClient implements SubgraphClient {
 
   async getAppEvents(
     applicationId: bigint,
+    requestId: string | undefined,
     eventSubType: string | string[],
     limit: number,
     before?: bigint,
@@ -129,6 +135,10 @@ export class MockSubgraphClient implements SubgraphClient {
     }
     if (before != null) {
       filtered = filtered.filter((ev) => ev.sortKey < before);
+    }
+    if (requestId != undefined) {
+      const normalized = requestId.startsWith("0x") ? requestId : `0x${requestId}`;
+      filtered = filtered.filter((ev) => ev.requestId === normalized);
     }
 
     filtered.sort((a, b) => {

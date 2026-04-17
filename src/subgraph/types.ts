@@ -7,12 +7,14 @@ export interface SubgraphClient {
   getDeployRequestCompleted(applicationId: bigint | undefined, requestId: string | undefined): Promise<DeployRequestCompleted | null>;
   getUserEvents(
     applicationId: bigint,
+    requestId: string | undefined,
     eventSubType: string | string[],
     limit: number,
     before?: bigint,
   ): Promise<UserEvent[]>;
   getAppEvents(
     applicationId: bigint,
+    requestId: string | undefined,
     eventSubType: string | string[],
     limit: number,
     before?: bigint,
