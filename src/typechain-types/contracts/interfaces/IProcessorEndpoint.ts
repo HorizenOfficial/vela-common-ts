@@ -64,6 +64,13 @@ export declare namespace Structs {
     requestType: bigint;
   };
 
+  export type EventDataStruct = { events: BytesLike[]; subTypes: BytesLike[] };
+
+  export type EventDataStructOutput = [events: string[], subTypes: string[]] & {
+    events: string[];
+    subTypes: string[];
+  };
+
   export type WithdrawalRequestStruct = {
     tokenAddress: AddressLike;
     receiver: AddressLike;
@@ -106,6 +113,7 @@ export interface IProcessorEndpointInterface extends Interface {
 
   getEvent(
     nameOrSignatureOrTopic:
+      | "AppEvent"
       | "DeployRequestCompleted"
       | "DeployRequestSubmitted"
       | "FeeCollectorUpdated"
@@ -188,8 +196,8 @@ export interface IProcessorEndpointInterface extends Interface {
       BytesLike,
       BytesLike,
       BytesLike,
-      BytesLike[],
-      string[],
+      Structs.EventDataStruct,
+      Structs.EventDataStruct,
       Structs.WithdrawalRequestStruct[],
       BigNumberish,
       BigNumberish,
@@ -332,6 +340,31 @@ export interface IProcessorEndpointInterface extends Interface {
     functionFragment: "updateQueueThreshold",
     data: BytesLike
   ): Result;
+}
+
+export namespace AppEventEvent {
+  export type InputTuple = [
+    applicationId: BigNumberish,
+    requestId: BytesLike,
+    eventSubType: BytesLike,
+    data: BytesLike
+  ];
+  export type OutputTuple = [
+    applicationId: bigint,
+    requestId: string,
+    eventSubType: string,
+    data: string
+  ];
+  export interface OutputObject {
+    applicationId: bigint;
+    requestId: string;
+    eventSubType: string;
+    data: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace DeployRequestCompletedEvent {
@@ -572,7 +605,7 @@ export namespace UserEventEvent {
   export type InputTuple = [
     applicationId: BigNumberish,
     requestId: BytesLike,
-    eventSubType: string,
+    eventSubType: BytesLike,
     encryptedData: BytesLike
   ];
   export type OutputTuple = [
@@ -752,8 +785,8 @@ export interface IProcessorEndpoint extends BaseContract {
       prevStateRoot: BytesLike,
       newStateRoot: BytesLike,
       processedRequestId: BytesLike,
-      events: BytesLike[],
-      eventSubTypes: string[],
+      userEventData: Structs.EventDataStruct,
+      appEventData: Structs.EventDataStruct,
       withdrawalRequests: Structs.WithdrawalRequestStruct[],
       refund: BigNumberish,
       applicationFees: BigNumberish,
@@ -915,8 +948,8 @@ export interface IProcessorEndpoint extends BaseContract {
       prevStateRoot: BytesLike,
       newStateRoot: BytesLike,
       processedRequestId: BytesLike,
-      events: BytesLike[],
-      eventSubTypes: string[],
+      userEventData: Structs.EventDataStruct,
+      appEventData: Structs.EventDataStruct,
       withdrawalRequests: Structs.WithdrawalRequestStruct[],
       refund: BigNumberish,
       applicationFees: BigNumberish,
@@ -983,6 +1016,13 @@ export interface IProcessorEndpoint extends BaseContract {
     nameOrSignature: "updateQueueThreshold"
   ): TypedContractMethod<[newThreshold: BigNumberish], [void], "nonpayable">;
 
+  getEvent(
+    key: "AppEvent"
+  ): TypedContractEvent<
+    AppEventEvent.InputTuple,
+    AppEventEvent.OutputTuple,
+    AppEventEvent.OutputObject
+  >;
   getEvent(
     key: "DeployRequestCompleted"
   ): TypedContractEvent<
@@ -1076,6 +1116,17 @@ export interface IProcessorEndpoint extends BaseContract {
   >;
 
   filters: {
+    "AppEvent(uint64,bytes32,bytes32,bytes)": TypedContractEvent<
+      AppEventEvent.InputTuple,
+      AppEventEvent.OutputTuple,
+      AppEventEvent.OutputObject
+    >;
+    AppEvent: TypedContractEvent<
+      AppEventEvent.InputTuple,
+      AppEventEvent.OutputTuple,
+      AppEventEvent.OutputObject
+    >;
+
     "DeployRequestCompleted(uint64,bytes32,uint256,uint8,uint8,string)": TypedContractEvent<
       DeployRequestCompletedEvent.InputTuple,
       DeployRequestCompletedEvent.OutputTuple,
@@ -1197,7 +1248,7 @@ export interface IProcessorEndpoint extends BaseContract {
       StateRootUpdateEvent.OutputObject
     >;
 
-    "UserEvent(uint64,bytes32,string,bytes)": TypedContractEvent<
+    "UserEvent(uint64,bytes32,bytes32,bytes)": TypedContractEvent<
       UserEventEvent.InputTuple,
       UserEventEvent.OutputTuple,
       UserEventEvent.OutputObject

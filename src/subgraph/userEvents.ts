@@ -33,6 +33,7 @@ export async function fetchAndDecryptUserEvents(
   teePublicKey: CryptoKey,
   privateKey: CryptoKey,
   applicationId: bigint,
+  requestId: string | undefined,
   eventSubType: string | string[],
   limit: number,
   filter?: (data: Uint8Array) => boolean,
@@ -46,7 +47,7 @@ export async function fetchAndDecryptUserEvents(
   let before: bigint | undefined;
 
   while (true) {
-    const events = await client.getUserEvents(applicationId, eventSubType, pageSize, before);
+    const events = await client.getUserEvents(applicationId, requestId, eventSubType, pageSize, before);
     if (events.length === 0) break;
 
     for (const ev of events) {

@@ -71,7 +71,7 @@ describe("Vela Client test", function () {
 
     await processorEndpoint.stateUpdate(
       applicationId, BYTES32_ZERO, INITIAL_STATE_ROOT, deployRequestId,
-      [], [], [], 0, 0, 0, "", "0x"
+      { events: [], subTypes: [] }, { events: [], subTypes: [] }, [], 0, 0, 0, "", "0x"
     );
 
     client = new VelaClient(signer, true, await teeAuthenticator.getAddress(), await processorEndpoint.getAddress());

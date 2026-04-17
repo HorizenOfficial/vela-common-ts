@@ -44,7 +44,7 @@ describe("fetchAndDecryptUserEvents", function () {
     ]);
 
     const result = await fetchAndDecryptUserEvents(
-      mock, teeKey.publicKey, userKey.privateKey, appId, "", 1,
+      mock, teeKey.publicKey, userKey.privateKey, appId, undefined, "", 1,
     );
 
     assert.equal(result.length, 1);
@@ -67,7 +67,7 @@ describe("fetchAndDecryptUserEvents", function () {
     const filter = (data: Uint8Array) => bytesToString(data).includes("keep");
 
     const result = await fetchAndDecryptUserEvents(
-      mock, teeKey.publicKey, userKey.privateKey, appId, "", 10, filter,
+      mock, teeKey.publicKey, userKey.privateKey, appId, undefined, "", 10, filter,
     );
 
     assert.equal(result.length, 1);
@@ -89,13 +89,13 @@ describe("fetchAndDecryptUserEvents", function () {
     ]);
 
     const resultA = await fetchAndDecryptUserEvents(
-      mock, teeKey.publicKey, userKeyA.privateKey, appId, "", 10,
+      mock, teeKey.publicKey, userKeyA.privateKey, appId, undefined, "", 10,
     );
     assert.equal(resultA.length, 1);
     assert.equal(bytesToString(resultA[0]), "user-a");
 
     const resultB = await fetchAndDecryptUserEvents(
-      mock, teeKey.publicKey, userKeyB.privateKey, appId, "", 10,
+      mock, teeKey.publicKey, userKeyB.privateKey, appId, undefined, "", 10,
     );
     assert.equal(resultB.length, 1);
     assert.equal(bytesToString(resultB[0]), "user-b");
@@ -120,7 +120,7 @@ describe("fetchAndDecryptUserEvents", function () {
       const filter = (data: Uint8Array) => bytesToString(data).includes("target");
 
       const result = await fetchAndDecryptUserEvents(
-        mock, teeKey.publicKey, userKey.privateKey, appId, "", 1, filter,
+        mock, teeKey.publicKey, userKey.privateKey, appId, undefined, "", 1, filter,
       );
 
       assert.equal(result.length, 1);
@@ -144,7 +144,7 @@ describe("fetchAndDecryptUserEvents", function () {
     ]);
 
     const result = await fetchAndDecryptUserEvents(
-      mock, teeKey.publicKey, userKey.privateKey, appId, "", 1,
+      mock, teeKey.publicKey, userKey.privateKey, appId, undefined, "", 1,
     );
 
     assert.equal(result.length, 1);
@@ -165,7 +165,7 @@ describe("fetchAndDecryptUserEvents", function () {
     ]);
 
     const result = await fetchAndDecryptUserEvents(
-      mock, teeKey.publicKey, userKey.privateKey, appId, "", 0,
+      mock, teeKey.publicKey, userKey.privateKey, appId, undefined, "", 0,
     );
 
     assert.equal(result.length, 2);
@@ -194,7 +194,7 @@ describe("fetchAndDecryptUserEvents", function () {
     ]);
 
     const result = await fetchAndDecryptUserEvents(
-      mock, teeKey.publicKey, userKey.privateKey, appId, subtypes, 0,
+      mock, teeKey.publicKey, userKey.privateKey, appId, undefined, subtypes, 0,
     );
 
     assert.equal(result.length, 2);
@@ -217,7 +217,7 @@ describe("fetchAndDecryptUserEvents", function () {
 
     // descending order: logIndex 2 comes first
     const result = await fetchAndDecryptUserEvents(
-      mock, teeKey.publicKey, userKey.privateKey, appId, "", 1,
+      mock, teeKey.publicKey, userKey.privateKey, appId, undefined, "", 1,
     );
 
     assert.equal(result.length, 1);

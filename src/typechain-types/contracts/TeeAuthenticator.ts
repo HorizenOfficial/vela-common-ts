@@ -24,6 +24,13 @@ import type {
 } from "../common";
 
 export declare namespace Structs {
+  export type EventDataStruct = { events: BytesLike[]; subTypes: BytesLike[] };
+
+  export type EventDataStructOutput = [events: string[], subTypes: string[]] & {
+    events: string[];
+    subTypes: string[];
+  };
+
   export type WithdrawalRequestStruct = {
     tokenAddress: AddressLike;
     receiver: AddressLike;
@@ -41,8 +48,8 @@ export declare namespace Structs {
     prevStateRoot: BytesLike;
     newStateRoot: BytesLike;
     processedRequestId: BytesLike;
-    events: BytesLike[];
-    eventSubTypes: string[];
+    userEvents: Structs.EventDataStruct;
+    appEvents: Structs.EventDataStruct;
     withdrawalRequests: Structs.WithdrawalRequestStruct[];
     refundAmount: BigNumberish;
     applicationFee: BigNumberish;
@@ -55,8 +62,8 @@ export declare namespace Structs {
     prevStateRoot: string,
     newStateRoot: string,
     processedRequestId: string,
-    events: string[],
-    eventSubTypes: string[],
+    userEvents: Structs.EventDataStructOutput,
+    appEvents: Structs.EventDataStructOutput,
     withdrawalRequests: Structs.WithdrawalRequestStructOutput[],
     refundAmount: bigint,
     applicationFee: bigint,
@@ -67,8 +74,8 @@ export declare namespace Structs {
     prevStateRoot: string;
     newStateRoot: string;
     processedRequestId: string;
-    events: string[];
-    eventSubTypes: string[];
+    userEvents: Structs.EventDataStructOutput;
+    appEvents: Structs.EventDataStructOutput;
     withdrawalRequests: Structs.WithdrawalRequestStructOutput[];
     refundAmount: bigint;
     applicationFee: bigint;

@@ -34,6 +34,7 @@ Everything is re-exported from `src/index.ts`:
   - `utils.ts`: hex/bytes/string conversions.
 
 - **blockchain/** — `VelaClient` wraps two on-chain contracts (`ITeeAuthenticator`, `ProcessorEndpoint`) via typechain-types. Handles request submission (including deploy requests), ERC-20 token approval, TEE encryption, on-chain event querying/decryption, and claims.
+  - **Block range convention (inverted from Ethereum):** in methods taking `fromBlock` / `toBlock` (`getRequestCompletedEvent`, `getDeployRequestCompletedEvent`, `getCurrentUserEvents`, `getAppEvents`), `fromBlock` is the **most recent** block and `toBlock` is the **oldest** — i.e. `fromBlock >= toBlock`. This is the opposite of Ethereum's standard (where `fromBlock` is older). Passing `fromBlock < toBlock` throws.
 
 - **subgraph/** — `SubgraphClient` queries the same data (RequestCompleted, UserEvent) through a GraphQL subgraph instead of direct on-chain event filtering. Provides pagination via `sortKey` and batch decryption via `fetchAndDecryptUserEvents`.
 
