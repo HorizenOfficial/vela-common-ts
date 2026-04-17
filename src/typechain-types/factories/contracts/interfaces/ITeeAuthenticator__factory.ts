@@ -46,9 +46,9 @@ const _abi = [
                 type: "bytes[]",
               },
               {
-                internalType: "string[]",
+                internalType: "bytes32[]",
                 name: "subTypes",
-                type: "string[]",
+                type: "bytes32[]",
               },
             ],
             internalType: "struct Structs.EventData",
@@ -63,9 +63,9 @@ const _abi = [
                 type: "bytes[]",
               },
               {
-                internalType: "string[]",
+                internalType: "bytes32[]",
                 name: "subTypes",
-                type: "string[]",
+                type: "bytes32[]",
               },
             ],
             internalType: "struct Structs.EventData",

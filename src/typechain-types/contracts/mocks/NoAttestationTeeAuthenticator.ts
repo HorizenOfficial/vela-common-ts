@@ -24,7 +24,7 @@ import type {
 } from "../../common";
 
 export declare namespace Structs {
-  export type EventDataStruct = { events: BytesLike[]; subTypes: string[] };
+  export type EventDataStruct = { events: BytesLike[]; subTypes: BytesLike[] };
 
   export type EventDataStructOutput = [events: string[], subTypes: string[]] & {
     events: string[];

@@ -64,7 +64,7 @@ export declare namespace Structs {
     requestType: bigint;
   };
 
-  export type EventDataStruct = { events: BytesLike[]; subTypes: string[] };
+  export type EventDataStruct = { events: BytesLike[]; subTypes: BytesLike[] };
 
   export type EventDataStructOutput = [events: string[], subTypes: string[]] & {
     events: string[];
@@ -580,7 +580,7 @@ export namespace AppEventEvent {
   export type InputTuple = [
     applicationId: BigNumberish,
     requestId: BytesLike,
-    eventSubType: string,
+    eventSubType: BytesLike,
     data: BytesLike
   ];
   export type OutputTuple = [
@@ -931,7 +931,7 @@ export namespace UserEventEvent {
   export type InputTuple = [
     applicationId: BigNumberish,
     requestId: BytesLike,
-    eventSubType: string,
+    eventSubType: BytesLike,
     encryptedData: BytesLike
   ];
   export type OutputTuple = [
@@ -1759,7 +1759,7 @@ export interface ProcessorEndpoint extends BaseContract {
   >;
 
   filters: {
-    "AppEvent(uint64,bytes32,string,bytes)": TypedContractEvent<
+    "AppEvent(uint64,bytes32,bytes32,bytes)": TypedContractEvent<
       AppEventEvent.InputTuple,
       AppEventEvent.OutputTuple,
       AppEventEvent.OutputObject
@@ -1957,7 +1957,7 @@ export interface ProcessorEndpoint extends BaseContract {
       TokenRemovedEvent.OutputObject
     >;
 
-    "UserEvent(uint64,bytes32,string,bytes)": TypedContractEvent<
+    "UserEvent(uint64,bytes32,bytes32,bytes)": TypedContractEvent<
       UserEventEvent.InputTuple,
       UserEventEvent.OutputTuple,
       UserEventEvent.OutputObject
