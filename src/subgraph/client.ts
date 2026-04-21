@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from "axios";
-import { type SubgraphClient, type RequestCompleted, type DeployRequestCompleted, type UserEvent, type OnChainRefund, type OnChainWithdrawal, type ClaimExecuted } from "./types";
+import { type SubgraphClient, type RequestCompleted, type DeployRequestCompleted, type UserEvent, type AppEvent, type OnChainRefund, type OnChainWithdrawal, type ClaimExecuted } from "./types";
 import { hexToBytes } from "../crypto/utils";
 
 interface GraphError {
@@ -82,6 +82,20 @@ interface UserEventEntity {
 
 interface UserEventData {
   userEvents: UserEventEntity[];
+}
+
+interface AppEventEntity {
+  applicationId: string;
+  requestId: string;
+  eventSubType: string;
+  data: string;
+  blockNumber: string;
+  logIndex: string;
+  sortKey: string;
+}
+
+interface AppEventData {
+  appEvents: AppEventEntity[];
 }
 
 // ---------- client implementation ----------
@@ -212,6 +226,7 @@ query(${varDefs}) {
 
   async getUserEvents(
     applicationId: bigint,
+    requestId: string | undefined,
     eventSubType: string | string[],
     limit: number,
     before?: bigint,
@@ -243,6 +258,11 @@ query(${varDefs}) {
       variables.before = before.toString();
       whereParts.push("sortKey_lt: $before");
     }
+    if (requestId != undefined) {
+      varDefs += ", $requestId: Bytes!";
+      variables.requestId = requestId.startsWith("0x") ? requestId : `0x${requestId}`;
+      whereParts.push("requestId: $requestId");
+    }
 
     const query = `
 query($applicationId: BigInt!, $limit: Int!${varDefs}) {
@@ -272,6 +292,80 @@ query($applicationId: BigInt!, $limit: Int!${varDefs}) {
       requestId: entity.requestId,
       eventSubType: entity.eventSubType,
       encryptedData: entity.encryptedData ? hexToBytes(entity.encryptedData) : new Uint8Array(0),
+      blockNumber: Number(entity.blockNumber),
+      logIndex: Number(entity.logIndex),
+      sortKey: BigInt(entity.sortKey),
+    }));
+  }
+
+  async getAppEvents(
+    applicationId: bigint,
+    requestId: string | undefined,
+    eventSubType: string | string[],
+    limit: number,
+    before?: bigint,
+  ): Promise<AppEvent[]> {
+    if (limit <= 0) limit = 10;
+    if (limit > 1000) limit = 1000;
+
+    const variables: Record<string, unknown> = {
+      applicationId: String(applicationId),
+      limit,
+    };
+
+    let varDefs = "";
+    const whereParts = ["applicationId: $applicationId"];
+
+    if (Array.isArray(eventSubType)) {
+      if (eventSubType.length > 0) {
+        varDefs += ", $eventSubTypes: [Bytes!]!";
+        variables.eventSubTypes = eventSubType;
+        whereParts.push("eventSubType_in: $eventSubTypes");
+      }
+    } else if (eventSubType.trim()) {
+      varDefs += ", $eventSubType: Bytes!";
+      variables.eventSubType = eventSubType;
+      whereParts.push("eventSubType: $eventSubType");
+    }
+    if (before != null) {
+      varDefs += ", $before: BigInt!";
+      variables.before = before.toString();
+      whereParts.push("sortKey_lt: $before");
+    }
+    if (requestId != undefined) {
+      varDefs += ", $requestId: Bytes!";
+      variables.requestId = requestId.startsWith("0x") ? requestId : `0x${requestId}`;
+      whereParts.push("requestId: $requestId");
+    }
+
+    const query = `
+query($applicationId: BigInt!, $limit: Int!${varDefs}) {
+  appEvents(
+    where: { ${whereParts.join(", ")} }
+    orderBy: sortKey
+    orderDirection: desc
+    first: $limit
+  ) {
+    applicationId
+    requestId
+    eventSubType
+    data
+    blockNumber
+    logIndex
+    sortKey
+  }
+}`;
+
+    const resp = await this.doGraphQL<AppEventData>(query, variables);
+    if (resp.errors?.length) {
+      throw new Error(`subgraph returned errors: ${resp.errors[0].message}`);
+    }
+
+    return resp.data.appEvents.map((entity) => ({
+      applicationId,
+      requestId: entity.requestId,
+      eventSubType: entity.eventSubType,
+      data: entity.data ? hexToBytes(entity.data) : new Uint8Array(0),
       blockNumber: Number(entity.blockNumber),
       logIndex: Number(entity.logIndex),
       sortKey: BigInt(entity.sortKey),

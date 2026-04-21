@@ -6,7 +6,7 @@ import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { decrypt, encrypt, importPublicKeyFromHex, P521KeyPair } from "../crypto/p521";
 import { bytesToHex, hexToBytes, stringToBytes } from "../crypto/utils";
 import { TypedContractEvent, TypedEventLog } from "../typechain-types/common";
-import { UserEventEvent } from "../typechain-types/contracts/ProcessorEndpoint";
+import { UserEventEvent, AppEventEvent } from "../typechain-types/contracts/ProcessorEndpoint";
 import { ETH_TOKEN } from "../constants";
 
 export enum RequestType {
@@ -220,19 +220,41 @@ export class VelaClient {
     );
   };
 
-  async getCurrentUserEvents(fromBlock: number | undefined, toBlock: number | undefined, applicationId: string, eventSubType: string | undefined, filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
+  async getCurrentUserEvents(fromBlock: number | undefined, toBlock: number | undefined, applicationId: bigint, requestId: string | undefined, eventSubType: string | undefined, filter: (event: Uint8Array) => boolean, stopAtFirst: boolean): Promise<Uint8Array[]> {
+    // eventSubType must be a bytes32 hex value (use ethers.encodeBytes32String() to convert from a readable string)
     if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
       throw new Error("fromBlock cannot be less than toBlock");
     }
 
     //get UserEvent events from Processor Endpoint
     const events = await this.processorEndpoint.queryFilter(
-      this.processorEndpoint.filters.UserEvent(applicationId, undefined, eventSubType, undefined),
+      this.processorEndpoint.filters.UserEvent(applicationId, requestId, eventSubType, undefined),
       toBlock,
       fromBlock
     );
 
     return await this.decryptAndFilterEvents(events, filter, stopAtFirst);
+  }
+
+  async getAppEvents(fromBlock: number | undefined, toBlock: number | undefined, applicationId: bigint, requestId: string | undefined, eventSubType: string | undefined): Promise<{ requestId: string; eventSubType: string; data: Uint8Array }[]> {
+    // eventSubType must be a bytes32 hex value (use ethers.encodeBytes32String() to convert from a readable string)
+    if(fromBlock != undefined && toBlock != undefined && fromBlock < toBlock) {
+      throw new Error("fromBlock cannot be less than toBlock");
+    }
+
+    const events = await this.processorEndpoint.queryFilter(
+      this.processorEndpoint.filters.AppEvent(applicationId, requestId, eventSubType, undefined),
+      toBlock,
+      fromBlock
+    );
+
+    return events
+      .filter(e => !e.removed)
+      .map(e => ({
+        requestId: e.args.requestId,
+        eventSubType: e.args.eventSubType,
+        data: hexToBytes(e.args.data),
+      }));
   }
 
   async approveToken(tokenAddress: string, amount: bigint): Promise<ContractTransactionResponse> {
