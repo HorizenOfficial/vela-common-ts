@@ -29,18 +29,20 @@ This is a browser-oriented TypeScript library published to npm. It bundles with 
 Everything is re-exported from `src/index.ts`:
 
 - **crypto/** — P-521 ECDH encryption using Web Crypto API.
-  - `p521.ts`: key generation, import/export, ECDH + AES-256-GCM encrypt/decrypt.
+  - `p521.ts`: key generation, import/export (hex + JWK), ECDH + AES-256-GCM encrypt/decrypt, HKDF/seed-based key derivation.
   - `wallet.ts`: derives P-521 key pairs from ethers.js Signers via HKDF (sign a challenge, use signature as IKM).
   - `utils.ts`: hex/bytes/string conversions.
+  - `seed.ts`: privacy-preserving event subtypes for `ASSOCIATEKEY`. A 65-byte secp256k1 signature over `keccak256("subtype-key-v1")` is the seed; the enclave HMACs it to produce deterministic per-app `EventSubType` values that replace the WASM-provided ones.
 
 - **blockchain/** — `VelaClient` wraps two on-chain contracts (`ITeeAuthenticator`, `ProcessorEndpoint`) via typechain-types. Handles request submission (including deploy requests), ERC-20 token approval, TEE encryption, on-chain event querying/decryption, and claims.
   - **Block range convention (inverted from Ethereum):** in methods taking `fromBlock` / `toBlock` (`getRequestCompletedEvent`, `getDeployRequestCompletedEvent`, `getCurrentUserEvents`, `getAppEvents`), `fromBlock` is the **most recent** block and `toBlock` is the **oldest** — i.e. `fromBlock >= toBlock`. This is the opposite of Ethereum's standard (where `fromBlock` is older). Passing `fromBlock < toBlock` throws.
+  - `UserEvent` carries encrypted per-user payloads (decrypted via `decryptAndFilterEvents`); `AppEvent` carries application-wide plaintext data returned as-is by `getAppEvents`.
 
-- **subgraph/** — `SubgraphClient` queries the same data (RequestCompleted, UserEvent) through a GraphQL subgraph instead of direct on-chain event filtering. Provides pagination via `sortKey` and batch decryption via `fetchAndDecryptUserEvents`.
+- **subgraph/** — `SubgraphClient` queries indexed data via GraphQL as an alternative to direct on-chain event filtering. Covers `RequestCompleted`, `DeployRequestCompleted`, `UserEvent`, `AppEvent`, `OnChainRefund`, `OnChainWithdrawal`, and `ClaimExecuted` projections. Provides pagination via `sortKey` and batch decryption of user events via `fetchAndDecryptUserEvents`.
 
 ### Blockchain vs Subgraph
 
-Both modules decrypt the same `UserEvent` data. `VelaClient` queries events by block range directly on-chain; `SubgraphClient` queries indexed data via GraphQL (faster, paginated, but depends on subgraph availability).
+Both modules can read the same `UserEvent` / `AppEvent` data. `VelaClient` queries events by block range directly on-chain; `SubgraphClient` queries indexed data via GraphQL (faster, paginated, richer projections, but depends on subgraph availability).
 
 ### typechain-types
 

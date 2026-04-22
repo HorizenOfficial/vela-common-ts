@@ -89,10 +89,13 @@ const client = new VelaClient(
 | `getSignerKeyPair()` | Get the P-521 key pair derived from the signer |
 | `getRequestCompletedEvent(requestId, fromBlock, toBlock)` | Query for request completion |
 | `getDeployRequestCompletedEvent(applicationId, requestId, fromBlock, toBlock)` | Query for deploy request completion |
-| `getCurrentUserEvents(fromBlock, toBlock, applicationId, eventSubType, filter, stopAtFirst)` | Get encrypted events for current user |
+| `getCurrentUserEvents(fromBlock, toBlock, applicationId, requestId, eventSubType, filter, stopAtFirst)` | Get encrypted `UserEvent`s for the current user, decrypting in-range |
+| `getAppEvents(fromBlock, toBlock, applicationId, requestId, eventSubType)` | Get plaintext application-wide `AppEvent`s |
 | `decryptAndFilterEvents(events, filter, stopAtFirst)` | Decrypt and filter events |
 | `getPendingClaims(tokenAddress, payee)` | Get pending claim amount for an address |
 | `claim(tokenAddress, payee)` | Claim pending funds |
+
+> **Block range:** `fromBlock` must be **>=** `toBlock` (most-recent → oldest), the opposite of Ethereum's usual convention. Passing `fromBlock < toBlock` throws.
 
 #### `RequestType`
 
@@ -132,8 +135,12 @@ import {
   decryptWithAES,
   importPublicKeyFromHex,
   importPrivateKeyFromHex,
+  importPrivateKeyFromJWK,
   exportPublicKeyToHex,
+  exportPrivateKeyToJWK,
   generateKeyPair,
+  deriveKeyPairFromHKDF,
+  deriveKeyPairFromSeed,
   P521KeyPair
 } from 'vela-common-ts';
 
@@ -158,10 +165,41 @@ const aesPlaintext = await decryptWithAES(sharedKey, aesCiphertext);
 // Generate a new P-521 key pair
 const keyPair = await generateKeyPair();
 
-// Import/export keys
+// Import/export keys (hex or JWK)
 const pubKey = await importPublicKeyFromHex(hexString);
 const privKey = await importPrivateKeyFromHex(hexString);
 const hexPubKey = await exportPublicKeyToHex(keyPair.publicKey);
+const jwkPriv = await exportPrivateKeyToJWK(keyPair.privateKey);
+const privFromJwk = await importPrivateKeyFromJWK(jwkPriv);
+
+// Derive a key pair from HKDF input key material or from a raw seed
+const derivedFromIkm = await deriveKeyPairFromHKDF(ikmBytes);
+const derivedFromSeed = await deriveKeyPairFromSeed(seedBytes);
+```
+
+#### Privacy-preserving Subtypes (ASSOCIATEKEY)
+
+Helpers to register a user key with the enclave and derive deterministic event subtypes that replace the WASM-provided ones.
+
+```typescript
+import {
+  generateSeed,
+  encryptSeed,
+  buildAssociateKeyPayload,
+  generateSubtypeSet
+} from 'vela-common-ts';
+
+// 1. Seed = 65-byte secp256k1 signature over keccak256("subtype-key-v1")
+const seed = generateSeed(secp256k1PrivateKey);
+
+// 2. Encrypt the seed for the enclave (ECDH + AES-256-GCM, 93-byte envelope)
+const encryptedSeed = await encryptSeed(seed, userP521PrivateKey, enclaveP521PublicKey);
+
+// 3. Build the ASSOCIATEKEY payload (133 bytes without seed, 226 with)
+const payload = await buildAssociateKeyPayload(userP521PublicKey, encryptedSeed);
+
+// 4. Locally derive the same N subtypes the enclave will emit
+const subtypes = await generateSubtypeSet(seed); // defaults to DEFAULT_SUBTYPE_N
 ```
 
 ### Subgraph Client
@@ -181,20 +219,33 @@ const subgraphClient = createSubgraphClient(subgraphUrl);
 // Health check
 await subgraphClient.healthCheck();
 
-// Query completed requests
+// Query a completed request by ID
 const result = await subgraphClient.getRequestCompletedByID(requestId);
 
-// Query user events
-const events = await subgraphClient.getUserEvents(applicationId, eventSubType, limit);
+// Query a completed deploy request (by applicationId and/or requestId)
+const deploy = await subgraphClient.getDeployRequestCompleted(applicationId, requestId);
 
-// Fetch and decrypt user events
+// Query user events (encrypted). eventSubType accepts a string or string[].
+const userEvents = await subgraphClient.getUserEvents(applicationId, requestId, eventSubType, limit, before);
+
+// Query application-wide (plaintext) events
+const appEvents = await subgraphClient.getAppEvents(applicationId, requestId, eventSubType, limit, before);
+
+// Query refunds, withdrawals, executed claims
+const refunds     = await subgraphClient.getRefunds(applicationId, requestId, limit);
+const withdrawals = await subgraphClient.getWithdrawals(applicationId, requestId, limit);
+const claims      = await subgraphClient.getClaimsExecuted(payee, tokenAddress, limit);
+
+// Fetch and decrypt user events (auto-paginates via sortKey)
 const decryptedEvents = await fetchAndDecryptUserEvents(
   subgraphClient,
-  keyPair,
   teePublicKey,
+  userPrivateKey,
   applicationId,
+  requestId,
   eventSubType,
-  limit
+  limit,
+  filter   // optional (data: Uint8Array) => boolean
 );
 ```
 
@@ -207,7 +258,8 @@ const decryptedEvents = await fetchAndDecryptUserEvents(
 | `MockSubgraphClient` | Mock implementation for testing |
 | `RequestCompleted` | Completed request projection from subgraph |
 | `DeployRequestCompleted` | Completed deploy request projection from subgraph |
-| `UserEvent` | User event projection from subgraph |
+| `UserEvent` | Encrypted user event projection from subgraph |
+| `AppEvent` | Plaintext application-wide event projection from subgraph |
 | `OnChainRefund` | Refund event projection from subgraph |
 | `OnChainWithdrawal` | Withdrawal event projection from subgraph |
 | `ClaimExecuted` | Claim execution event projection from subgraph |
@@ -215,15 +267,26 @@ const decryptedEvents = await fetchAndDecryptUserEvents(
 ### Constants
 
 ```typescript
-import { ETH_TOKEN, CHALLENGE, HKDF_SALT, HKDF_INFO } from 'vela-common-ts';
+import {
+  ETH_TOKEN,
+  PROTOCOL_VERSION,
+  CHALLENGE,
+  HKDF_SALT,
+  HKDF_INFO,
+  SUBTYPE_KEY_MESSAGE,
+  DEFAULT_SUBTYPE_N
+} from 'vela-common-ts';
 ```
 
 | Constant | Description |
 |----------|-------------|
 | `ETH_TOKEN` | Sentinel address representing native ETH (use as `tokenAddress` for ETH deposits) |
+| `PROTOCOL_VERSION` | Current Vela protocol version expected by the contracts |
 | `CHALLENGE` | Challenge message used for key derivation signing |
 | `HKDF_SALT` | Salt used in HKDF key derivation |
 | `HKDF_INFO` | Info parameter used in HKDF key derivation |
+| `SUBTYPE_KEY_MESSAGE` | Message signed to produce the seed for privacy-preserving subtypes |
+| `DEFAULT_SUBTYPE_N` | Default number of HMAC-derived subtypes generated from a seed |
 
 ## Browser Compatibility
 
