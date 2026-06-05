@@ -130,6 +130,42 @@ export class VelaClient {
     throw new Error("DeployRequestSubmitted event not found in transaction receipt");
   }
 
+  // Same as submitDeployRequest, but also registers a trigger contract for the
+  // deployed application via ProcessorEndpoint.submitDeployRequestWithTrigger.
+  // The deploy payload still carries the WASM descriptor (built by
+  // buildDeployPayload); the trigger address is passed as a separate argument.
+  // Pass constructorParams = undefined when the app needs none.
+  async submitDeployRequestWithTrigger(protocolVersion: number, maxFeeValue: bigint, wasmSha256: Uint8Array, constructorParams: unknown | undefined, trigger: string): Promise<ContractTransactionResponse> {
+    const payload = this.buildDeployPayload(wasmSha256, constructorParams);
+    return await this.processorEndpoint.submitDeployRequestWithTrigger(
+      protocolVersion,
+      payload,
+      trigger,
+      {value: maxFeeValue}
+    );
+  }
+
+  async submitDeployRequestWithTriggerAndWaitForRequestId(protocolVersion: number, maxFeeValue: bigint, wasmSha256: Uint8Array, constructorParams: unknown | undefined, trigger: string): Promise<RequestReceipt> {
+    const tx = await this.submitDeployRequestWithTrigger(protocolVersion, maxFeeValue, wasmSha256, constructorParams, trigger);
+    const receipt = await tx.wait();
+    if(!receipt) {
+      throw new Error("Transaction receipt not available");
+    }
+    //find the DeployRequestSubmitted event and read its requestId arg (not indexed — in log data)
+    const iface = this.processorEndpoint.interface;
+    for(const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog({topics: Array.from(log.topics), data: log.data});
+        if(parsed?.name === "DeployRequestSubmitted") {
+          return new RequestReceipt(parsed.args.requestId as string, receipt);
+        }
+      } catch {
+        continue;
+      }
+    }
+    throw new Error("DeployRequestSubmitted event not found in transaction receipt");
+  }
+
   private buildDeployPayload(wasmSha256: Uint8Array, constructorParams?: unknown): Uint8Array {
     const sha256Hex = bytesToHex(wasmSha256);
     const descriptor: DeployDescriptor = {

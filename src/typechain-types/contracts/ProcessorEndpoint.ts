@@ -127,6 +127,7 @@ export interface ProcessorEndpointInterface extends Interface {
       | "revokeRole"
       | "stateUpdate"
       | "submitDeployRequest"
+      | "submitDeployRequestWithTrigger"
       | "submitRequest"
       | "submitRequestFor"
       | "supportsInterface"
@@ -341,6 +342,10 @@ export interface ProcessorEndpointInterface extends Interface {
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "submitDeployRequestWithTrigger",
+    values: [BigNumberish, BytesLike, AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "submitRequest",
     values: [
       BigNumberish,
@@ -536,6 +541,10 @@ export interface ProcessorEndpointInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "submitDeployRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "submitDeployRequestWithTrigger",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -1256,6 +1265,12 @@ export interface ProcessorEndpoint extends BaseContract {
     "payable"
   >;
 
+  submitDeployRequestWithTrigger: TypedContractMethod<
+    [protocolVersion: BigNumberish, payload: BytesLike, trigger: AddressLike],
+    [string],
+    "payable"
+  >;
+
   submitRequest: TypedContractMethod<
     [
       protocolVersion: BigNumberish,
@@ -1559,6 +1574,13 @@ export interface ProcessorEndpoint extends BaseContract {
     nameOrSignature: "submitDeployRequest"
   ): TypedContractMethod<
     [protocolVersion: BigNumberish, payload: BytesLike],
+    [string],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "submitDeployRequestWithTrigger"
+  ): TypedContractMethod<
+    [protocolVersion: BigNumberish, payload: BytesLike, trigger: AddressLike],
     [string],
     "payable"
   >;

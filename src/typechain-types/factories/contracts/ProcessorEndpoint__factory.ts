@@ -1807,6 +1807,35 @@ const _abi = [
         type: "uint8",
       },
       {
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+      {
+        internalType: "address",
+        name: "trigger",
+        type: "address",
+      },
+    ],
+    name: "submitDeployRequestWithTrigger",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "protocolVersion",
+        type: "uint8",
+      },
+      {
         internalType: "uint64",
         name: "applicationId",
         type: "uint64",
