@@ -3,7 +3,6 @@ set -eEuo pipefail
 
 workdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 github_tag="${GITHUB_REF_NAME:-}"
-npm_token="${NPM_TOKEN:-}"
 prod_release="${PROD_RELEASE:-false}"
 is_a_release="${IS_A_RELEASE:-false}"
 
@@ -26,13 +25,9 @@ if [ -z "${github_tag}" ]; then
   fn_die "GITHUB_REF_NAME is not set. This script is intended to be run in GitHub Actions CI/CD environment."
 fi
 
-if [ "${prod_release}" = "true" ] && [ -z "${npm_token}" ]; then
-  fn_die "NPM_TOKEN is not set. Please set the 'NPM_TOKEN' secret under GitHub Actions secrets."
-fi
-
 # Install dependencies
 log_info "Installing dependencies..."
-npm ci || fn_die "Failed to install dependencies."
+npm ci --ignore-scripts || fn_die "Failed to install dependencies."
 
 # Build the package (bundle + type declarations)
 log_info "Building package..."
@@ -41,13 +36,10 @@ npm run build || fn_die "Failed to build the package."
 # Publish the package to NPM registry
 if [ "${prod_release}" = "true" ]; then
 
-  # Modify npmrc file for authentication
-  log_info "Modifying npmrc file for authentication..."
-  echo "//registry.npmjs.org/:_authToken=${npm_token}" > ~/.npmrc
-
-  # Publish the package
-  log_info "Publishing to npm registry..."
-  npm publish --no-git-tag-version --access public --provenance --ignore-scripts || fn_die "Failed to publish the package to npm registry."
+  # Authentication is via OIDC trusted publishing (id-token: write + a trusted
+  # publisher configured on npmjs.org) — no NPM_TOKEN/.npmrc credential needed.
+  log_info "Publishing to npm registry via OIDC trusted publishing..."
+  npm publish --access public --provenance --ignore-scripts || fn_die "Failed to publish the package to npm registry."
 
   log_info "Package successfully published to the npm registry under version: ${github_tag}"
 else
