@@ -9,3 +9,4 @@ export { IProcessorEndpoint__factory } from "./IProcessorEndpoint__factory";
 export { ITeeAuthenticator__factory } from "./ITeeAuthenticator__factory";
 export { ITeeAuthenticatorAdmin__factory } from "./ITeeAuthenticatorAdmin__factory";
 export { ITokenAllowlist__factory } from "./ITokenAllowlist__factory";
+export { ITrigger__factory } from "./ITrigger__factory";

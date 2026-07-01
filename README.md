@@ -83,6 +83,8 @@ const client = new VelaClient(
 | `submitRequestAndWaitForRequestId(...)` | Submit and wait for request ID |
 | `submitDeployRequest(protocolVersion, maxFeeValue, wasmSha256, constructorParams?)` | Submit a deploy request |
 | `submitDeployRequestAndWaitForRequestId(...)` | Submit deploy request and wait for request ID |
+| `submitDeployRequestWithTrigger(protocolVersion, maxFeeValue, wasmSha256, constructorParams, trigger)` | Submit a deploy request registering a trigger contract for the app (`trigger` must be a deployed contract; pass `constructorParams` as `undefined` if none) |
+| `submitDeployRequestWithTriggerAndWaitForRequestId(...)` | Submit deploy request with trigger and wait for request ID |
 | `approveToken(tokenAddress, amount)` | Approve ERC-20 token spending for the Processor Endpoint |
 | `encryptForTee(data)` | Encrypt data for the TEE |
 | `getTeePublicKey()` | Get the TEE's public key |

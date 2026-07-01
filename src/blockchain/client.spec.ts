@@ -3,7 +3,7 @@ import { ETH_TOKEN } from "../constants";
 import ganache, { Server } from "ganache";
 import assert from "assert";
 import { VelaClient, RequestType } from "../blockchain/client";
-import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory } from "../typechain-types/index";
+import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory, TestTrigger__factory, TokenAllowlist__factory } from "../typechain-types/index";
 import { decrypt, encrypt, exportPublicKeyToHex, generateKeyPair, P521KeyPair } from "../crypto/p521";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { bytesToHex, bytesToString, stringToBytes } from "../crypto/utils";
@@ -49,7 +49,10 @@ describe("Vela Client test", function () {
     
     authorityRegistry = await new AuthorityRegistry__factory(signer).deploy(signer, signer);
     await authorityRegistry.waitForDeployment();
-    processorEndpoint = await new ProcessorEndpoint__factory(signer).deploy(teeAuthenticator, authorityRegistry, signer, signer, 0);
+    const tokenAllowlist = await new TokenAllowlist__factory(signer).deploy(signer);
+    await tokenAllowlist.waitForDeployment();
+    // ctor: (tee, authorityRegistry, updateStatusOperator, admin, resetOperator, minFeePerRequest, tokenAllowlist)
+    processorEndpoint = await new ProcessorEndpoint__factory(signer).deploy(teeAuthenticator, authorityRegistry, signer, signer, signer, 0, tokenAllowlist);
     await processorEndpoint.waitForDeployment();
 
     //bootstrap an application: submitDeployRequest then finalize via stateUpdate
@@ -104,6 +107,20 @@ describe("Vela Client test", function () {
     const wasmSha256 = new Uint8Array(32);
     wasmSha256.fill(0xab);
     const receipt = await client.submitDeployRequestAndWaitForRequestId(0, BigInt(0), wasmSha256, {foo: "bar"});
+    assert.notEqual(receipt.requestId, undefined);
+    assert.notEqual(receipt.transactionReceipt, undefined);
+  })
+
+  it("submitDeployRequestWithTrigger", async () => {
+    //deploy a real trigger contract wired to the endpoint (must be a deployed,
+    //non-EOA contract not already registered as a trigger)
+    const signer = await provider.getSigner(0);
+    const trigger = await new TestTrigger__factory(signer).deploy(processorEndpoint, false, false);
+    await trigger.waitForDeployment();
+
+    const wasmSha256 = new Uint8Array(32);
+    wasmSha256.fill(0xcd);
+    const receipt = await client.submitDeployRequestWithTriggerAndWaitForRequestId(0, BigInt(0), wasmSha256, {foo: "bar"}, await trigger.getAddress());
     assert.notEqual(receipt.requestId, undefined);
     assert.notEqual(receipt.transactionReceipt, undefined);
   })

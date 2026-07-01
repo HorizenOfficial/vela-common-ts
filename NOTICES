@@ -17,6 +17,12 @@ PERMISSIVE DEPENDENCIES - npm (Runtime)
   Source:     https://github.com/paulmillr/noble-curves
   Notice:     Copyright (c) 2022 Paul Miller.
 
+@noble/hashes
+  Version:    ^2.0.0
+  License:    MIT
+  Source:     https://github.com/paulmillr/noble-hashes
+  Notice:     Copyright (c) 2022 Paul Miller.
+
 elliptic
   Version:    ^6.6.1
   License:    MIT

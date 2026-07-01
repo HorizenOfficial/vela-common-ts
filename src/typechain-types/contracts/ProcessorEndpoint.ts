@@ -24,6 +24,16 @@ import type {
 } from "../common";
 
 export declare namespace Structs {
+  export type TokenAndAmountStruct = {
+    token: AddressLike;
+    amount: BigNumberish;
+  };
+
+  export type TokenAndAmountStructOutput = [token: string, amount: bigint] & {
+    token: string;
+    amount: bigint;
+  };
+
   export type PendingRequestStruct = {
     timestamp: BigNumberish;
     tokenAddress: AddressLike;
@@ -92,10 +102,11 @@ export interface ProcessorEndpointInterface extends Interface {
       | "DEPLOYER_ROLE"
       | "PROTOCOL_VERSION"
       | "REQUEST_AUTHORIZATION_TYPEHASH"
+      | "RESET_OPERATOR"
       | "UPDATE_STATUS_ROLE"
       | "addAllowedDeployer"
-      | "addAllowedToken"
-      | "allowedTokens"
+      | "adminReset"
+      | "adminResetApps"
       | "appCustody"
       | "applicationStateRoots"
       | "authorityRegistry"
@@ -105,34 +116,39 @@ export interface ProcessorEndpointInterface extends Interface {
       | "facilitatorNonces"
       | "feeCollector"
       | "generateRequestId"
+      | "getDeployedAppIds"
       | "getFacilitatorNonce"
       | "getNextPendingRequest"
       | "getPendingRequests"
       | "getPendingRequestsPage"
       | "getPendingRequestsSize"
       | "getRoleAdmin"
+      | "getTriggerQueueSize"
+      | "getTriggerRequests"
       | "grantRole"
       | "hasRole"
       | "isAllowedDeployer"
-      | "isAllowedToken"
       | "isCurrentPendingRequest"
       | "maxNumOfApplications"
       | "maxQueueSize"
       | "minFeePerRequest"
       | "pendingClaims"
       | "removeAllowedDeployer"
-      | "removeAllowedToken"
       | "renounceRole"
       | "requestById"
       | "revokeRole"
       | "stateUpdate"
       | "submitDeployRequest"
+      | "submitDeployRequestWithTrigger"
       | "submitRequest"
       | "submitRequestFor"
       | "supportsInterface"
       | "teeAuthenticator"
+      | "tokenAllowlist"
       | "totalAppCustody"
       | "totalPendingClaims"
+      | "triggerContracts"
+      | "triggersToAppIds"
       | "updateFeeCollector"
       | "updateMaxNumOfApplications"
       | "updateQueueThreshold"
@@ -156,8 +172,8 @@ export interface ProcessorEndpointInterface extends Interface {
       | "RoleGranted"
       | "RoleRevoked"
       | "StateRootUpdate"
-      | "TokenAllowed"
-      | "TokenRemoved"
+      | "TriggerExecuted"
+      | "TriggerWithdraw"
       | "UserEvent"
       | "Withdrawal"
   ): EventFragment;
@@ -180,6 +196,10 @@ export interface ProcessorEndpointInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "RESET_OPERATOR",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "UPDATE_STATUS_ROLE",
     values?: undefined
   ): string;
@@ -188,12 +208,12 @@ export interface ProcessorEndpointInterface extends Interface {
     values: [AddressLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "addAllowedToken",
-    values: [AddressLike]
+    functionFragment: "adminReset",
+    values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "allowedTokens",
-    values: [AddressLike]
+    functionFragment: "adminResetApps",
+    values: [BigNumberish[]]
   ): string;
   encodeFunctionData(
     functionFragment: "appCustody",
@@ -240,6 +260,10 @@ export interface ProcessorEndpointInterface extends Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "getDeployedAppIds",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getFacilitatorNonce",
     values: [AddressLike]
   ): string;
@@ -264,6 +288,14 @@ export interface ProcessorEndpointInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getTriggerQueueSize",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTriggerRequests",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "grantRole",
     values: [BytesLike, AddressLike]
   ): string;
@@ -273,10 +305,6 @@ export interface ProcessorEndpointInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "isAllowedDeployer",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isAllowedToken",
     values: [AddressLike]
   ): string;
   encodeFunctionData(
@@ -301,10 +329,6 @@ export interface ProcessorEndpointInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "removeAllowedDeployer",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeAllowedToken",
     values: [AddressLike]
   ): string;
   encodeFunctionData(
@@ -339,6 +363,10 @@ export interface ProcessorEndpointInterface extends Interface {
   encodeFunctionData(
     functionFragment: "submitDeployRequest",
     values: [BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "submitDeployRequestWithTrigger",
+    values: [BigNumberish, BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "submitRequest",
@@ -376,11 +404,23 @@ export interface ProcessorEndpointInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "tokenAllowlist",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "totalAppCustody",
     values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "totalPendingClaims",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "triggerContracts",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "triggersToAppIds",
     values: [AddressLike]
   ): string;
   encodeFunctionData(
@@ -414,6 +454,10 @@ export interface ProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "RESET_OPERATOR",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "UPDATE_STATUS_ROLE",
     data: BytesLike
   ): Result;
@@ -421,12 +465,9 @@ export interface ProcessorEndpointInterface extends Interface {
     functionFragment: "addAllowedDeployer",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "adminReset", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "addAllowedToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "allowedTokens",
+    functionFragment: "adminResetApps",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "appCustody", data: BytesLike): Result;
@@ -460,6 +501,10 @@ export interface ProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getDeployedAppIds",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getFacilitatorNonce",
     data: BytesLike
   ): Result;
@@ -483,14 +528,18 @@ export interface ProcessorEndpointInterface extends Interface {
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTriggerQueueSize",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTriggerRequests",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isAllowedDeployer",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isAllowedToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -518,10 +567,6 @@ export interface ProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "removeAllowedToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
@@ -536,6 +581,10 @@ export interface ProcessorEndpointInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "submitDeployRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "submitDeployRequestWithTrigger",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -555,11 +604,23 @@ export interface ProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "tokenAllowlist",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "totalAppCustody",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "totalPendingClaims",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "triggerContracts",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "triggersToAppIds",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -903,11 +964,21 @@ export namespace StateRootUpdateEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace TokenAllowedEvent {
-  export type InputTuple = [token: AddressLike];
-  export type OutputTuple = [token: string];
+export namespace TriggerExecutedEvent {
+  export type InputTuple = [
+    applicationId: BigNumberish,
+    processedRequestId: BytesLike,
+    success: boolean
+  ];
+  export type OutputTuple = [
+    applicationId: bigint,
+    processedRequestId: string,
+    success: boolean
+  ];
   export interface OutputObject {
-    token: string;
+    applicationId: bigint;
+    processedRequestId: string;
+    success: boolean;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -915,11 +986,30 @@ export namespace TokenAllowedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace TokenRemovedEvent {
-  export type InputTuple = [token: AddressLike];
-  export type OutputTuple = [token: string];
+export namespace TriggerWithdrawEvent {
+  export type InputTuple = [
+    applicationId: BigNumberish,
+    processedRequestId: BytesLike,
+    withdrawSuccess: boolean,
+    postWithdrawSuccess: boolean,
+    returnedTokens: Structs.TokenAndAmountStruct[],
+    failedTokens: Structs.TokenAndAmountStruct[]
+  ];
+  export type OutputTuple = [
+    applicationId: bigint,
+    processedRequestId: string,
+    withdrawSuccess: boolean,
+    postWithdrawSuccess: boolean,
+    returnedTokens: Structs.TokenAndAmountStructOutput[],
+    failedTokens: Structs.TokenAndAmountStructOutput[]
+  ];
   export interface OutputObject {
-    token: string;
+    applicationId: bigint;
+    processedRequestId: string;
+    withdrawSuccess: boolean;
+    postWithdrawSuccess: boolean;
+    returnedTokens: Structs.TokenAndAmountStructOutput[];
+    failedTokens: Structs.TokenAndAmountStructOutput[];
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -1033,6 +1123,8 @@ export interface ProcessorEndpoint extends BaseContract {
 
   REQUEST_AUTHORIZATION_TYPEHASH: TypedContractMethod<[], [string], "view">;
 
+  RESET_OPERATOR: TypedContractMethod<[], [string], "view">;
+
   UPDATE_STATUS_ROLE: TypedContractMethod<[], [string], "view">;
 
   addAllowedDeployer: TypedContractMethod<
@@ -1041,13 +1133,13 @@ export interface ProcessorEndpoint extends BaseContract {
     "nonpayable"
   >;
 
-  addAllowedToken: TypedContractMethod<
-    [token: AddressLike],
+  adminReset: TypedContractMethod<[], [void], "nonpayable">;
+
+  adminResetApps: TypedContractMethod<
+    [appIds: BigNumberish[]],
     [void],
     "nonpayable"
   >;
-
-  allowedTokens: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
 
   appCustody: TypedContractMethod<
     [arg0: BigNumberish, arg1: AddressLike],
@@ -1096,7 +1188,7 @@ export interface ProcessorEndpoint extends BaseContract {
       sender: AddressLike,
       applicationId: BigNumberish,
       requestType: BigNumberish,
-      payload: BytesLike,
+      payloadHash: BytesLike,
       tokenAddress: AddressLike,
       assetAmount: BigNumberish,
       idx: BigNumberish
@@ -1104,6 +1196,8 @@ export interface ProcessorEndpoint extends BaseContract {
     [string],
     "view"
   >;
+
+  getDeployedAppIds: TypedContractMethod<[], [bigint[]], "view">;
 
   getFacilitatorNonce: TypedContractMethod<
     [user: AddressLike],
@@ -1137,6 +1231,14 @@ export interface ProcessorEndpoint extends BaseContract {
 
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
 
+  getTriggerQueueSize: TypedContractMethod<[], [bigint], "view">;
+
+  getTriggerRequests: TypedContractMethod<
+    [],
+    [Structs.PendingRequestStructOutput[]],
+    "view"
+  >;
+
   grantRole: TypedContractMethod<
     [role: BytesLike, account: AddressLike],
     [void],
@@ -1154,8 +1256,6 @@ export interface ProcessorEndpoint extends BaseContract {
     [boolean],
     "view"
   >;
-
-  isAllowedToken: TypedContractMethod<[token: AddressLike], [boolean], "view">;
 
   isCurrentPendingRequest: TypedContractMethod<
     [requestId: BytesLike],
@@ -1181,12 +1281,6 @@ export interface ProcessorEndpoint extends BaseContract {
     "nonpayable"
   >;
 
-  removeAllowedToken: TypedContractMethod<
-    [token: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
   renounceRole: TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
     [void],
@@ -1194,34 +1288,8 @@ export interface ProcessorEndpoint extends BaseContract {
   >;
 
   requestById: TypedContractMethod<
-    [arg0: BytesLike],
-    [
-      [
-        bigint,
-        string,
-        bigint,
-        bigint,
-        string,
-        string,
-        string,
-        string,
-        bigint,
-        bigint,
-        bigint
-      ] & {
-        timestamp: bigint;
-        tokenAddress: string;
-        assetAmount: bigint;
-        maxFeeValue: bigint;
-        requestId: string;
-        payload: string;
-        sender: string;
-        facilitator: string;
-        applicationId: bigint;
-        protocolVersion: bigint;
-        requestType: bigint;
-      }
-    ],
+    [id: BytesLike],
+    [Structs.PendingRequestStructOutput],
     "view"
   >;
 
@@ -1252,6 +1320,12 @@ export interface ProcessorEndpoint extends BaseContract {
 
   submitDeployRequest: TypedContractMethod<
     [protocolVersion: BigNumberish, payload: BytesLike],
+    [string],
+    "payable"
+  >;
+
+  submitDeployRequestWithTrigger: TypedContractMethod<
+    [protocolVersion: BigNumberish, payload: BytesLike, trigger: AddressLike],
     [string],
     "payable"
   >;
@@ -1295,6 +1369,8 @@ export interface ProcessorEndpoint extends BaseContract {
 
   teeAuthenticator: TypedContractMethod<[], [string], "view">;
 
+  tokenAllowlist: TypedContractMethod<[], [string], "view">;
+
   totalAppCustody: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
   totalPendingClaims: TypedContractMethod<
@@ -1302,6 +1378,10 @@ export interface ProcessorEndpoint extends BaseContract {
     [bigint],
     "view"
   >;
+
+  triggerContracts: TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+
+  triggersToAppIds: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
   updateFeeCollector: TypedContractMethod<
     [newFeeCollector: AddressLike],
@@ -1341,17 +1421,20 @@ export interface ProcessorEndpoint extends BaseContract {
     nameOrSignature: "REQUEST_AUTHORIZATION_TYPEHASH"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "RESET_OPERATOR"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "UPDATE_STATUS_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "addAllowedDeployer"
   ): TypedContractMethod<[deployer: AddressLike], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "addAllowedToken"
-  ): TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+    nameOrSignature: "adminReset"
+  ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "allowedTokens"
-  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+    nameOrSignature: "adminResetApps"
+  ): TypedContractMethod<[appIds: BigNumberish[]], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "appCustody"
   ): TypedContractMethod<
@@ -1405,7 +1488,7 @@ export interface ProcessorEndpoint extends BaseContract {
       sender: AddressLike,
       applicationId: BigNumberish,
       requestType: BigNumberish,
-      payload: BytesLike,
+      payloadHash: BytesLike,
       tokenAddress: AddressLike,
       assetAmount: BigNumberish,
       idx: BigNumberish
@@ -1413,6 +1496,9 @@ export interface ProcessorEndpoint extends BaseContract {
     [string],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "getDeployedAppIds"
+  ): TypedContractMethod<[], [bigint[]], "view">;
   getFunction(
     nameOrSignature: "getFacilitatorNonce"
   ): TypedContractMethod<[user: AddressLike], [bigint], "view">;
@@ -1444,6 +1530,12 @@ export interface ProcessorEndpoint extends BaseContract {
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;
   getFunction(
+    nameOrSignature: "getTriggerQueueSize"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getTriggerRequests"
+  ): TypedContractMethod<[], [Structs.PendingRequestStructOutput[]], "view">;
+  getFunction(
     nameOrSignature: "grantRole"
   ): TypedContractMethod<
     [role: BytesLike, account: AddressLike],
@@ -1460,9 +1552,6 @@ export interface ProcessorEndpoint extends BaseContract {
   getFunction(
     nameOrSignature: "isAllowedDeployer"
   ): TypedContractMethod<[deployer: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "isAllowedToken"
-  ): TypedContractMethod<[token: AddressLike], [boolean], "view">;
   getFunction(
     nameOrSignature: "isCurrentPendingRequest"
   ): TypedContractMethod<[requestId: BytesLike], [boolean], "view">;
@@ -1486,9 +1575,6 @@ export interface ProcessorEndpoint extends BaseContract {
     nameOrSignature: "removeAllowedDeployer"
   ): TypedContractMethod<[deployer: AddressLike], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "removeAllowedToken"
-  ): TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
-  getFunction(
     nameOrSignature: "renounceRole"
   ): TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
@@ -1498,34 +1584,8 @@ export interface ProcessorEndpoint extends BaseContract {
   getFunction(
     nameOrSignature: "requestById"
   ): TypedContractMethod<
-    [arg0: BytesLike],
-    [
-      [
-        bigint,
-        string,
-        bigint,
-        bigint,
-        string,
-        string,
-        string,
-        string,
-        bigint,
-        bigint,
-        bigint
-      ] & {
-        timestamp: bigint;
-        tokenAddress: string;
-        assetAmount: bigint;
-        maxFeeValue: bigint;
-        requestId: string;
-        payload: string;
-        sender: string;
-        facilitator: string;
-        applicationId: bigint;
-        protocolVersion: bigint;
-        requestType: bigint;
-      }
-    ],
+    [id: BytesLike],
+    [Structs.PendingRequestStructOutput],
     "view"
   >;
   getFunction(
@@ -1559,6 +1619,13 @@ export interface ProcessorEndpoint extends BaseContract {
     nameOrSignature: "submitDeployRequest"
   ): TypedContractMethod<
     [protocolVersion: BigNumberish, payload: BytesLike],
+    [string],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "submitDeployRequestWithTrigger"
+  ): TypedContractMethod<
+    [protocolVersion: BigNumberish, payload: BytesLike, trigger: AddressLike],
     [string],
     "payable"
   >;
@@ -1602,10 +1669,19 @@ export interface ProcessorEndpoint extends BaseContract {
     nameOrSignature: "teeAuthenticator"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "tokenAllowlist"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "totalAppCustody"
   ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "totalPendingClaims"
+  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "triggerContracts"
+  ): TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "triggersToAppIds"
   ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "updateFeeCollector"
@@ -1730,18 +1806,18 @@ export interface ProcessorEndpoint extends BaseContract {
     StateRootUpdateEvent.OutputObject
   >;
   getEvent(
-    key: "TokenAllowed"
+    key: "TriggerExecuted"
   ): TypedContractEvent<
-    TokenAllowedEvent.InputTuple,
-    TokenAllowedEvent.OutputTuple,
-    TokenAllowedEvent.OutputObject
+    TriggerExecutedEvent.InputTuple,
+    TriggerExecutedEvent.OutputTuple,
+    TriggerExecutedEvent.OutputObject
   >;
   getEvent(
-    key: "TokenRemoved"
+    key: "TriggerWithdraw"
   ): TypedContractEvent<
-    TokenRemovedEvent.InputTuple,
-    TokenRemovedEvent.OutputTuple,
-    TokenRemovedEvent.OutputObject
+    TriggerWithdrawEvent.InputTuple,
+    TriggerWithdrawEvent.OutputTuple,
+    TriggerWithdrawEvent.OutputObject
   >;
   getEvent(
     key: "UserEvent"
@@ -1935,26 +2011,26 @@ export interface ProcessorEndpoint extends BaseContract {
       StateRootUpdateEvent.OutputObject
     >;
 
-    "TokenAllowed(address)": TypedContractEvent<
-      TokenAllowedEvent.InputTuple,
-      TokenAllowedEvent.OutputTuple,
-      TokenAllowedEvent.OutputObject
+    "TriggerExecuted(uint64,bytes32,bool)": TypedContractEvent<
+      TriggerExecutedEvent.InputTuple,
+      TriggerExecutedEvent.OutputTuple,
+      TriggerExecutedEvent.OutputObject
     >;
-    TokenAllowed: TypedContractEvent<
-      TokenAllowedEvent.InputTuple,
-      TokenAllowedEvent.OutputTuple,
-      TokenAllowedEvent.OutputObject
+    TriggerExecuted: TypedContractEvent<
+      TriggerExecutedEvent.InputTuple,
+      TriggerExecutedEvent.OutputTuple,
+      TriggerExecutedEvent.OutputObject
     >;
 
-    "TokenRemoved(address)": TypedContractEvent<
-      TokenRemovedEvent.InputTuple,
-      TokenRemovedEvent.OutputTuple,
-      TokenRemovedEvent.OutputObject
+    "TriggerWithdraw(uint64,bytes32,bool,bool,tuple[],tuple[])": TypedContractEvent<
+      TriggerWithdrawEvent.InputTuple,
+      TriggerWithdrawEvent.OutputTuple,
+      TriggerWithdrawEvent.OutputObject
     >;
-    TokenRemoved: TypedContractEvent<
-      TokenRemovedEvent.InputTuple,
-      TokenRemovedEvent.OutputTuple,
-      TokenRemovedEvent.OutputObject
+    TriggerWithdraw: TypedContractEvent<
+      TriggerWithdrawEvent.InputTuple,
+      TriggerWithdrawEvent.OutputTuple,
+      TriggerWithdrawEvent.OutputObject
     >;
 
     "UserEvent(uint64,bytes32,bytes32,bytes)": TypedContractEvent<

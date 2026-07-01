@@ -81,23 +81,27 @@ export class VelaClient {
 
   async submitRequestAndWaitForRequestId(protocolVersion: number, applicationId: bigint, requestType: RequestType, payload: Uint8Array, tokenAddress: string, assetAmount: bigint, maxFeeValue: bigint): Promise<RequestReceipt> {
     const tx = await this.submitRequest(protocolVersion, applicationId, requestType, payload, tokenAddress, assetAmount, maxFeeValue);
+    return await this.waitForRequestId(tx, "RequestSubmitted");
+  }
+
+  // Waits for the transaction receipt and extracts requestId from the named event.
+  private async waitForRequestId(tx: ContractTransactionResponse, eventName: string): Promise<RequestReceipt> {
     const receipt = await tx.wait();
     if(!receipt) {
       throw new Error("Transaction receipt not available");
     }
-    //find the RequestSubmitted event and read its requestId arg
     const iface = this.processorEndpoint.interface;
     for(const log of receipt.logs) {
       try {
         const parsed = iface.parseLog({topics: Array.from(log.topics), data: log.data});
-        if(parsed?.name === "RequestSubmitted") {
+        if(parsed?.name === eventName) {
           return new RequestReceipt(parsed.args.requestId as string, receipt);
         }
       } catch {
         continue;
       }
     }
-    throw new Error("RequestSubmitted event not found in transaction receipt");
+    throw new Error(`${eventName} event not found in transaction receipt`);
   }
 
   async submitDeployRequest(protocolVersion: number, maxFeeValue: bigint, wasmSha256: Uint8Array, constructorParams?: unknown): Promise<ContractTransactionResponse> {
@@ -111,23 +115,27 @@ export class VelaClient {
 
   async submitDeployRequestAndWaitForRequestId(protocolVersion: number, maxFeeValue: bigint, wasmSha256: Uint8Array, constructorParams?: unknown): Promise<RequestReceipt> {
     const tx = await this.submitDeployRequest(protocolVersion, maxFeeValue, wasmSha256, constructorParams);
-    const receipt = await tx.wait();
-    if(!receipt) {
-      throw new Error("Transaction receipt not available");
-    }
-    //find the DeployRequestSubmitted event and read its requestId arg (not indexed — in log data)
-    const iface = this.processorEndpoint.interface;
-    for(const log of receipt.logs) {
-      try {
-        const parsed = iface.parseLog({topics: Array.from(log.topics), data: log.data});
-        if(parsed?.name === "DeployRequestSubmitted") {
-          return new RequestReceipt(parsed.args.requestId as string, receipt);
-        }
-      } catch {
-        continue;
-      }
-    }
-    throw new Error("DeployRequestSubmitted event not found in transaction receipt");
+    return await this.waitForRequestId(tx, "DeployRequestSubmitted");
+  }
+
+  // Same as submitDeployRequest, but also registers a trigger contract for the
+  // deployed application via ProcessorEndpoint.submitDeployRequestWithTrigger.
+  // The deploy payload still carries the WASM descriptor (built by
+  // buildDeployPayload); the trigger address is passed as a separate argument.
+  // Pass constructorParams = undefined when the app needs none.
+  async submitDeployRequestWithTrigger(protocolVersion: number, maxFeeValue: bigint, wasmSha256: Uint8Array, constructorParams: unknown | undefined, trigger: string): Promise<ContractTransactionResponse> {
+    const payload = this.buildDeployPayload(wasmSha256, constructorParams);
+    return await this.processorEndpoint.submitDeployRequestWithTrigger(
+      protocolVersion,
+      payload,
+      trigger,
+      {value: maxFeeValue}
+    );
+  }
+
+  async submitDeployRequestWithTriggerAndWaitForRequestId(protocolVersion: number, maxFeeValue: bigint, wasmSha256: Uint8Array, constructorParams: unknown | undefined, trigger: string): Promise<RequestReceipt> {
+    const tx = await this.submitDeployRequestWithTrigger(protocolVersion, maxFeeValue, wasmSha256, constructorParams, trigger);
+    return await this.waitForRequestId(tx, "DeployRequestSubmitted");
   }
 
   private buildDeployPayload(wasmSha256: Uint8Array, constructorParams?: unknown): Uint8Array {

@@ -62,3 +62,7 @@ GitHub Actions (`.github/workflows/ci.yml`): type check → build → test → v
 ## Peer Dependencies
 
 `ethers` v6 is a peer dependency — not bundled, must be installed by consumers.
+
+## NOTICES maintenance
+
+Whenever a dependency is added, removed, or version-bumped in `package.json`, update the `NOTICES` file to match. Each third-party component must be listed under the correct section (Runtime / Peer / Dev) with its version, license, source URL, and copyright notice. Keep the two files in sync in the same commit.

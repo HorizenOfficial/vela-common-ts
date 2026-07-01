@@ -24,6 +24,16 @@ import type {
 } from "../../common";
 
 export declare namespace Structs {
+  export type TokenAndAmountStruct = {
+    token: AddressLike;
+    amount: BigNumberish;
+  };
+
+  export type TokenAndAmountStructOutput = [token: string, amount: bigint] & {
+    token: string;
+    amount: bigint;
+  };
+
   export type PendingRequestStruct = {
     timestamp: BigNumberish;
     tokenAddress: AddressLike;
@@ -88,22 +98,29 @@ export interface IProcessorEndpointInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "addAllowedDeployer"
+      | "adminReset"
+      | "adminResetApps"
       | "appCustody"
       | "claim"
       | "generateRequestId"
+      | "getDeployedAppIds"
       | "getFacilitatorNonce"
       | "getNextPendingRequest"
       | "getPendingRequests"
       | "getPendingRequestsPage"
       | "getPendingRequestsSize"
+      | "getTriggerQueueSize"
+      | "getTriggerRequests"
       | "isAllowedDeployer"
       | "isCurrentPendingRequest"
       | "pendingClaims"
       | "removeAllowedDeployer"
       | "stateUpdate"
       | "submitDeployRequest"
+      | "submitDeployRequestWithTrigger"
       | "submitRequest"
       | "submitRequestFor"
+      | "tokenAllowlist"
       | "totalAppCustody"
       | "totalPendingClaims"
       | "updateFeeCollector"
@@ -125,6 +142,8 @@ export interface IProcessorEndpointInterface extends Interface {
       | "RequestCompleted"
       | "RequestSubmitted"
       | "StateRootUpdate"
+      | "TriggerExecuted"
+      | "TriggerWithdraw"
       | "UserEvent"
       | "Withdrawal"
   ): EventFragment;
@@ -132,6 +151,14 @@ export interface IProcessorEndpointInterface extends Interface {
   encodeFunctionData(
     functionFragment: "addAllowedDeployer",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "adminReset",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "adminResetApps",
+    values: [BigNumberish[]]
   ): string;
   encodeFunctionData(
     functionFragment: "appCustody",
@@ -154,6 +181,10 @@ export interface IProcessorEndpointInterface extends Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "getDeployedAppIds",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getFacilitatorNonce",
     values: [AddressLike]
   ): string;
@@ -171,6 +202,14 @@ export interface IProcessorEndpointInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getPendingRequestsSize",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTriggerQueueSize",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTriggerRequests",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -211,6 +250,10 @@ export interface IProcessorEndpointInterface extends Interface {
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "submitDeployRequestWithTrigger",
+    values: [BigNumberish, BytesLike, AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "submitRequest",
     values: [
       BigNumberish,
@@ -238,6 +281,10 @@ export interface IProcessorEndpointInterface extends Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "tokenAllowlist",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "totalAppCustody",
     values: [AddressLike]
   ): string;
@@ -262,10 +309,19 @@ export interface IProcessorEndpointInterface extends Interface {
     functionFragment: "addAllowedDeployer",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "adminReset", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "adminResetApps",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "appCustody", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "generateRequestId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDeployedAppIds",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -286,6 +342,14 @@ export interface IProcessorEndpointInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPendingRequestsSize",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTriggerQueueSize",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTriggerRequests",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -313,11 +377,19 @@ export interface IProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "submitDeployRequestWithTrigger",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "submitRequest",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "submitRequestFor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "tokenAllowlist",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -601,6 +673,59 @@ export namespace StateRootUpdateEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace TriggerExecutedEvent {
+  export type InputTuple = [
+    applicationId: BigNumberish,
+    processedRequestId: BytesLike,
+    success: boolean
+  ];
+  export type OutputTuple = [
+    applicationId: bigint,
+    processedRequestId: string,
+    success: boolean
+  ];
+  export interface OutputObject {
+    applicationId: bigint;
+    processedRequestId: string;
+    success: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace TriggerWithdrawEvent {
+  export type InputTuple = [
+    applicationId: BigNumberish,
+    processedRequestId: BytesLike,
+    withdrawSuccess: boolean,
+    postWithdrawSuccess: boolean,
+    returnedTokens: Structs.TokenAndAmountStruct[],
+    failedTokens: Structs.TokenAndAmountStruct[]
+  ];
+  export type OutputTuple = [
+    applicationId: bigint,
+    processedRequestId: string,
+    withdrawSuccess: boolean,
+    postWithdrawSuccess: boolean,
+    returnedTokens: Structs.TokenAndAmountStructOutput[],
+    failedTokens: Structs.TokenAndAmountStructOutput[]
+  ];
+  export interface OutputObject {
+    applicationId: bigint;
+    processedRequestId: string;
+    withdrawSuccess: boolean;
+    postWithdrawSuccess: boolean;
+    returnedTokens: Structs.TokenAndAmountStructOutput[];
+    failedTokens: Structs.TokenAndAmountStructOutput[];
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace UserEventEvent {
   export type InputTuple = [
     applicationId: BigNumberish,
@@ -703,6 +828,14 @@ export interface IProcessorEndpoint extends BaseContract {
     "nonpayable"
   >;
 
+  adminReset: TypedContractMethod<[], [void], "nonpayable">;
+
+  adminResetApps: TypedContractMethod<
+    [appIds: BigNumberish[]],
+    [void],
+    "nonpayable"
+  >;
+
   appCustody: TypedContractMethod<
     [applicationId: BigNumberish, tokenAddress: AddressLike],
     [bigint],
@@ -720,7 +853,7 @@ export interface IProcessorEndpoint extends BaseContract {
       sender: AddressLike,
       applicationId: BigNumberish,
       requestType: BigNumberish,
-      payload: BytesLike,
+      payloadHash: BytesLike,
       tokenAddress: AddressLike,
       assetAmount: BigNumberish,
       idx: BigNumberish
@@ -728,6 +861,8 @@ export interface IProcessorEndpoint extends BaseContract {
     [string],
     "view"
   >;
+
+  getDeployedAppIds: TypedContractMethod<[], [bigint[]], "view">;
 
   getFacilitatorNonce: TypedContractMethod<
     [user: AddressLike],
@@ -754,6 +889,14 @@ export interface IProcessorEndpoint extends BaseContract {
   >;
 
   getPendingRequestsSize: TypedContractMethod<[], [bigint], "view">;
+
+  getTriggerQueueSize: TypedContractMethod<[], [bigint], "view">;
+
+  getTriggerRequests: TypedContractMethod<
+    [],
+    [Structs.PendingRequestStructOutput[]],
+    "view"
+  >;
 
   isAllowedDeployer: TypedContractMethod<
     [deployer: AddressLike],
@@ -804,6 +947,12 @@ export interface IProcessorEndpoint extends BaseContract {
     "payable"
   >;
 
+  submitDeployRequestWithTrigger: TypedContractMethod<
+    [protocolVersion: BigNumberish, payload: BytesLike, trigger: AddressLike],
+    [string],
+    "payable"
+  >;
+
   submitRequest: TypedContractMethod<
     [
       protocolVersion: BigNumberish,
@@ -834,6 +983,8 @@ export interface IProcessorEndpoint extends BaseContract {
     [string],
     "payable"
   >;
+
+  tokenAllowlist: TypedContractMethod<[], [string], "view">;
 
   totalAppCustody: TypedContractMethod<
     [tokenAddress: AddressLike],
@@ -873,6 +1024,12 @@ export interface IProcessorEndpoint extends BaseContract {
     nameOrSignature: "addAllowedDeployer"
   ): TypedContractMethod<[deployer: AddressLike], [void], "nonpayable">;
   getFunction(
+    nameOrSignature: "adminReset"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "adminResetApps"
+  ): TypedContractMethod<[appIds: BigNumberish[]], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "appCustody"
   ): TypedContractMethod<
     [applicationId: BigNumberish, tokenAddress: AddressLike],
@@ -893,7 +1050,7 @@ export interface IProcessorEndpoint extends BaseContract {
       sender: AddressLike,
       applicationId: BigNumberish,
       requestType: BigNumberish,
-      payload: BytesLike,
+      payloadHash: BytesLike,
       tokenAddress: AddressLike,
       assetAmount: BigNumberish,
       idx: BigNumberish
@@ -901,6 +1058,9 @@ export interface IProcessorEndpoint extends BaseContract {
     [string],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "getDeployedAppIds"
+  ): TypedContractMethod<[], [bigint[]], "view">;
   getFunction(
     nameOrSignature: "getFacilitatorNonce"
   ): TypedContractMethod<[user: AddressLike], [bigint], "view">;
@@ -924,6 +1084,12 @@ export interface IProcessorEndpoint extends BaseContract {
   getFunction(
     nameOrSignature: "getPendingRequestsSize"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getTriggerQueueSize"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getTriggerRequests"
+  ): TypedContractMethod<[], [Structs.PendingRequestStructOutput[]], "view">;
   getFunction(
     nameOrSignature: "isAllowedDeployer"
   ): TypedContractMethod<[deployer: AddressLike], [boolean], "view">;
@@ -968,6 +1134,13 @@ export interface IProcessorEndpoint extends BaseContract {
     "payable"
   >;
   getFunction(
+    nameOrSignature: "submitDeployRequestWithTrigger"
+  ): TypedContractMethod<
+    [protocolVersion: BigNumberish, payload: BytesLike, trigger: AddressLike],
+    [string],
+    "payable"
+  >;
+  getFunction(
     nameOrSignature: "submitRequest"
   ): TypedContractMethod<
     [
@@ -1000,6 +1173,9 @@ export interface IProcessorEndpoint extends BaseContract {
     [string],
     "payable"
   >;
+  getFunction(
+    nameOrSignature: "tokenAllowlist"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "totalAppCustody"
   ): TypedContractMethod<[tokenAddress: AddressLike], [bigint], "view">;
@@ -1099,6 +1275,20 @@ export interface IProcessorEndpoint extends BaseContract {
     StateRootUpdateEvent.InputTuple,
     StateRootUpdateEvent.OutputTuple,
     StateRootUpdateEvent.OutputObject
+  >;
+  getEvent(
+    key: "TriggerExecuted"
+  ): TypedContractEvent<
+    TriggerExecutedEvent.InputTuple,
+    TriggerExecutedEvent.OutputTuple,
+    TriggerExecutedEvent.OutputObject
+  >;
+  getEvent(
+    key: "TriggerWithdraw"
+  ): TypedContractEvent<
+    TriggerWithdrawEvent.InputTuple,
+    TriggerWithdrawEvent.OutputTuple,
+    TriggerWithdrawEvent.OutputObject
   >;
   getEvent(
     key: "UserEvent"
@@ -1246,6 +1436,28 @@ export interface IProcessorEndpoint extends BaseContract {
       StateRootUpdateEvent.InputTuple,
       StateRootUpdateEvent.OutputTuple,
       StateRootUpdateEvent.OutputObject
+    >;
+
+    "TriggerExecuted(uint64,bytes32,bool)": TypedContractEvent<
+      TriggerExecutedEvent.InputTuple,
+      TriggerExecutedEvent.OutputTuple,
+      TriggerExecutedEvent.OutputObject
+    >;
+    TriggerExecuted: TypedContractEvent<
+      TriggerExecutedEvent.InputTuple,
+      TriggerExecutedEvent.OutputTuple,
+      TriggerExecutedEvent.OutputObject
+    >;
+
+    "TriggerWithdraw(uint64,bytes32,bool,bool,tuple[],tuple[])": TypedContractEvent<
+      TriggerWithdrawEvent.InputTuple,
+      TriggerWithdrawEvent.OutputTuple,
+      TriggerWithdrawEvent.OutputObject
+    >;
+    TriggerWithdraw: TypedContractEvent<
+      TriggerWithdrawEvent.InputTuple,
+      TriggerWithdrawEvent.OutputTuple,
+      TriggerWithdrawEvent.OutputObject
     >;
 
     "UserEvent(uint64,bytes32,bytes32,bytes)": TypedContractEvent<
