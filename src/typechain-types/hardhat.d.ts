@@ -150,6 +150,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ITokenAllowlist__factory>;
     getContractFactory(
+      name: "ITrigger",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ITrigger__factory>;
+    getContractFactory(
+      name: "ActionExecutedTrigger",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ActionExecutedTrigger__factory>;
+    getContractFactory(
       name: "FallbackFailure",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FallbackFailure__factory>;
@@ -157,6 +165,10 @@ declare module "hardhat/types/runtime" {
       name: "FeeOnTransferERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FeeOnTransferERC20__factory>;
+    getContractFactory(
+      name: "GuardedTrigger",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.GuardedTrigger__factory>;
     getContractFactory(
       name: "MockERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -170,9 +182,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockTeeAuthenticator__factory>;
     getContractFactory(
+      name: "MockTriggerEndpoint",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockTriggerEndpoint__factory>;
+    getContractFactory(
       name: "NoAttestationTeeAuthenticator",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.NoAttestationTeeAuthenticator__factory>;
+    getContractFactory(
+      name: "TestTrigger",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TestTrigger__factory>;
     getContractFactory(
       name: "ProcessorEndpoint",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -185,6 +205,10 @@ declare module "hardhat/types/runtime" {
       name: "TokenAllowlist",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TokenAllowlist__factory>;
+    getContractFactory(
+      name: "AbstractTrigger",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AbstractTrigger__factory>;
 
     getContractAt(
       name: "AccessControl",
@@ -357,6 +381,16 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ITokenAllowlist>;
     getContractAt(
+      name: "ITrigger",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ITrigger>;
+    getContractAt(
+      name: "ActionExecutedTrigger",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ActionExecutedTrigger>;
+    getContractAt(
       name: "FallbackFailure",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -366,6 +400,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.FeeOnTransferERC20>;
+    getContractAt(
+      name: "GuardedTrigger",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.GuardedTrigger>;
     getContractAt(
       name: "MockERC20",
       address: string | ethers.Addressable,
@@ -382,10 +421,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.MockTeeAuthenticator>;
     getContractAt(
+      name: "MockTriggerEndpoint",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MockTriggerEndpoint>;
+    getContractAt(
       name: "NoAttestationTeeAuthenticator",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.NoAttestationTeeAuthenticator>;
+    getContractAt(
+      name: "TestTrigger",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TestTrigger>;
     getContractAt(
       name: "ProcessorEndpoint",
       address: string | ethers.Addressable,
@@ -401,6 +450,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.TokenAllowlist>;
+    getContractAt(
+      name: "AbstractTrigger",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AbstractTrigger>;
 
     deployContract(
       name: "AccessControl",
@@ -539,6 +593,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ITokenAllowlist>;
     deployContract(
+      name: "ITrigger",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ITrigger>;
+    deployContract(
+      name: "ActionExecutedTrigger",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ActionExecutedTrigger>;
+    deployContract(
       name: "FallbackFailure",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.FallbackFailure>;
@@ -546,6 +608,10 @@ declare module "hardhat/types/runtime" {
       name: "FeeOnTransferERC20",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.FeeOnTransferERC20>;
+    deployContract(
+      name: "GuardedTrigger",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.GuardedTrigger>;
     deployContract(
       name: "MockERC20",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -559,9 +625,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.MockTeeAuthenticator>;
     deployContract(
+      name: "MockTriggerEndpoint",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockTriggerEndpoint>;
+    deployContract(
       name: "NoAttestationTeeAuthenticator",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.NoAttestationTeeAuthenticator>;
+    deployContract(
+      name: "TestTrigger",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.TestTrigger>;
     deployContract(
       name: "ProcessorEndpoint",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -574,6 +648,10 @@ declare module "hardhat/types/runtime" {
       name: "TokenAllowlist",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.TokenAllowlist>;
+    deployContract(
+      name: "AbstractTrigger",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AbstractTrigger>;
 
     deployContract(
       name: "AccessControl",
@@ -746,6 +824,16 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ITokenAllowlist>;
     deployContract(
+      name: "ITrigger",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ITrigger>;
+    deployContract(
+      name: "ActionExecutedTrigger",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ActionExecutedTrigger>;
+    deployContract(
       name: "FallbackFailure",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -755,6 +843,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.FeeOnTransferERC20>;
+    deployContract(
+      name: "GuardedTrigger",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.GuardedTrigger>;
     deployContract(
       name: "MockERC20",
       args: any[],
@@ -771,10 +864,20 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.MockTeeAuthenticator>;
     deployContract(
+      name: "MockTriggerEndpoint",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockTriggerEndpoint>;
+    deployContract(
       name: "NoAttestationTeeAuthenticator",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.NoAttestationTeeAuthenticator>;
+    deployContract(
+      name: "TestTrigger",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.TestTrigger>;
     deployContract(
       name: "ProcessorEndpoint",
       args: any[],
@@ -790,6 +893,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.TokenAllowlist>;
+    deployContract(
+      name: "AbstractTrigger",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AbstractTrigger>;
 
     // default types
     getContractFactory(
