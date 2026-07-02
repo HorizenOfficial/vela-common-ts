@@ -24,7 +24,11 @@ import type {
 
 export interface ITokenAllowlistInterface extends Interface {
   getFunction(
-    nameOrSignature: "addAllowedToken" | "isAllowedToken" | "removeAllowedToken"
+    nameOrSignature:
+      | "addAllowedToken"
+      | "getAllowedTokens"
+      | "isAllowedToken"
+      | "removeAllowedToken"
   ): FunctionFragment;
 
   getEvent(
@@ -34,6 +38,10 @@ export interface ITokenAllowlistInterface extends Interface {
   encodeFunctionData(
     functionFragment: "addAllowedToken",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAllowedTokens",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "isAllowedToken",
@@ -46,6 +54,10 @@ export interface ITokenAllowlistInterface extends Interface {
 
   decodeFunctionResult(
     functionFragment: "addAllowedToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAllowedTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -131,6 +143,8 @@ export interface ITokenAllowlist extends BaseContract {
     "nonpayable"
   >;
 
+  getAllowedTokens: TypedContractMethod<[], [string[]], "view">;
+
   isAllowedToken: TypedContractMethod<[token: AddressLike], [boolean], "view">;
 
   removeAllowedToken: TypedContractMethod<
@@ -146,6 +160,9 @@ export interface ITokenAllowlist extends BaseContract {
   getFunction(
     nameOrSignature: "addAllowedToken"
   ): TypedContractMethod<[token: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "getAllowedTokens"
+  ): TypedContractMethod<[], [string[]], "view">;
   getFunction(
     nameOrSignature: "isAllowedToken"
   ): TypedContractMethod<[token: AddressLike], [boolean], "view">;

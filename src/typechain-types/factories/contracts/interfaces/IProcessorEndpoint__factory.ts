@@ -115,6 +115,16 @@ const _abi = [
     type: "error",
   },
   {
+    inputs: [],
+    name: "TriggerAlreadyRegistered",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "TriggerCannotBeEOA",
+    type: "error",
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -456,6 +466,98 @@ const _abi = [
       {
         indexed: true,
         internalType: "bytes32",
+        name: "processedRequestId",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "success",
+        type: "bool",
+      },
+    ],
+    name: "TriggerExecuted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "processedRequestId",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "withdrawSuccess",
+        type: "bool",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "postWithdrawSuccess",
+        type: "bool",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+        ],
+        indexed: false,
+        internalType: "struct Structs.TokenAndAmount[]",
+        name: "returnedTokens",
+        type: "tuple[]",
+      },
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "token",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "amount",
+            type: "uint256",
+          },
+        ],
+        indexed: false,
+        internalType: "struct Structs.TokenAndAmount[]",
+        name: "failedTokens",
+        type: "tuple[]",
+      },
+    ],
+    name: "TriggerWithdraw",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
         name: "requestId",
         type: "bytes32",
       },
@@ -526,6 +628,26 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "adminReset",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint64[]",
+        name: "appIds",
+        type: "uint64[]",
+      },
+    ],
+    name: "adminResetApps",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint64",
@@ -585,9 +707,9 @@ const _abi = [
         type: "uint8",
       },
       {
-        internalType: "bytes",
-        name: "payload",
-        type: "bytes",
+        internalType: "bytes32",
+        name: "payloadHash",
+        type: "bytes32",
       },
       {
         internalType: "address",
@@ -614,6 +736,19 @@ const _abi = [
       },
     ],
     stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getDeployedAppIds",
+    outputs: [
+      {
+        internalType: "uint64[]",
+        name: "",
+        type: "uint64[]",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -880,6 +1015,89 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "getTriggerQueueSize",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getTriggerRequests",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "tokenAddress",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "assetAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "maxFeeValue",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "requestId",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes",
+            name: "payload",
+            type: "bytes",
+          },
+          {
+            internalType: "address",
+            name: "sender",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "facilitator",
+            type: "address",
+          },
+          {
+            internalType: "uint64",
+            name: "applicationId",
+            type: "uint64",
+          },
+          {
+            internalType: "uint8",
+            name: "protocolVersion",
+            type: "uint8",
+          },
+          {
+            internalType: "enum Structs.RequestType",
+            name: "requestType",
+            type: "uint8",
+          },
+        ],
+        internalType: "struct Structs.PendingRequest[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -1095,6 +1313,35 @@ const _abi = [
         type: "uint8",
       },
       {
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+      {
+        internalType: "address",
+        name: "trigger",
+        type: "address",
+      },
+    ],
+    name: "submitDeployRequestWithTrigger",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint8",
+        name: "protocolVersion",
+        type: "uint8",
+      },
+      {
         internalType: "uint64",
         name: "applicationId",
         type: "uint64",
@@ -1198,6 +1445,19 @@ const _abi = [
       },
     ],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "tokenAllowlist",
+    outputs: [
+      {
+        internalType: "contract ITokenAllowlist",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {

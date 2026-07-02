@@ -28,6 +28,7 @@ export interface TokenAllowlistInterface extends Interface {
       | "DEFAULT_ADMIN_ROLE"
       | "addAllowedToken"
       | "allowedTokens"
+      | "getAllowedTokens"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
@@ -58,6 +59,10 @@ export interface TokenAllowlistInterface extends Interface {
   encodeFunctionData(
     functionFragment: "allowedTokens",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAllowedTokens",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -102,6 +107,10 @@ export interface TokenAllowlistInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "allowedTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAllowedTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -264,6 +273,8 @@ export interface TokenAllowlist extends BaseContract {
 
   allowedTokens: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
 
+  getAllowedTokens: TypedContractMethod<[], [string[]], "view">;
+
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
 
   grantRole: TypedContractMethod<
@@ -317,6 +328,9 @@ export interface TokenAllowlist extends BaseContract {
   getFunction(
     nameOrSignature: "allowedTokens"
   ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "getAllowedTokens"
+  ): TypedContractMethod<[], [string[]], "view">;
   getFunction(
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;

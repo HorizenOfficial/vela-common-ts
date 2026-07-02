@@ -3,6 +3,7 @@
 /* eslint-disable */
 export * as interfaces from "./interfaces";
 export * as mocks from "./mocks";
+export * as trigger from "./trigger";
 export { AbstractTeeAuthenticator__factory } from "./AbstractTeeAuthenticator__factory";
 export { AuthorityRegistry__factory } from "./AuthorityRegistry__factory";
 export { DefaultAuthority__factory } from "./DefaultAuthority__factory";

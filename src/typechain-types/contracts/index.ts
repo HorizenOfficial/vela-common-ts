@@ -5,6 +5,8 @@ import type * as interfaces from "./interfaces";
 export type { interfaces };
 import type * as mocks from "./mocks";
 export type { mocks };
+import type * as trigger from "./trigger";
+export type { trigger };
 export type { AbstractTeeAuthenticator } from "./AbstractTeeAuthenticator";
 export type { AuthorityRegistry } from "./AuthorityRegistry";
 export type { DefaultAuthority } from "./DefaultAuthority";

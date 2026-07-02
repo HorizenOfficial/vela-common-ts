@@ -9,3 +9,4 @@ export type { IProcessorEndpoint } from "./IProcessorEndpoint";
 export type { ITeeAuthenticator } from "./ITeeAuthenticator";
 export type { ITeeAuthenticatorAdmin } from "./ITeeAuthenticatorAdmin";
 export type { ITokenAllowlist } from "./ITokenAllowlist";
+export type { ITrigger } from "./ITrigger";
