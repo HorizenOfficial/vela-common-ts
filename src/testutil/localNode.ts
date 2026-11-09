@@ -13,14 +13,14 @@ export interface LocalNode {
   close(): Promise<void>;
 }
 
-// Starts an in-process Hardhat (EDR) JSON-RPC node at the latest hardfork.
+// Starts an in-process Hardhat (EDR) JSON-RPC node at Cancun, the minimum hardfork Vela supports.
 export async function startLocalNode(port: number): Promise<LocalNode> {
   // Dynamic import: mocha loads specs through tsx's CJS hook, and a static import would load
   // hardhat's plugin modules twice (HHE2 "Duplicated plugin id").
   const { createHardhatRuntimeEnvironment } = await import("hardhat/hre");
   const hre = await createHardhatRuntimeEnvironment({
     networks: {
-      default: { type: "edr-simulated", chainType: "l1", accounts: ACCOUNTS },
+      default: { type: "edr-simulated", chainType: "l1", hardfork: "cancun", accounts: ACCOUNTS },
     },
   });
   const server: JsonRpcServer = await hre.network.createServer("default", "127.0.0.1", port);

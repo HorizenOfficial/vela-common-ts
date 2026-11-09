@@ -357,7 +357,7 @@ npm run build
 npm test
 ```
 
-The tests start an in-process Hardhat node on port 9545 (`src/testutil/localNode.ts`) and deploy the contracts from `src/typechain-types` behind `ERC1967Proxy` proxies, as in a real deployment. No external node is needed.
+The tests start an in-process Hardhat node on port 9545 (`src/testutil/localNode.ts`), at the Cancun hardfork (the minimum Vela supports), and deploy the contracts from `src/typechain-types` behind `ERC1967Proxy` proxies, as in a real deployment. No external node is needed.
 
 ### Type Check
 

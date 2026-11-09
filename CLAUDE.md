@@ -52,7 +52,7 @@ Both modules can read the same `UserEvent` / `AppEvent` data. `VelaClient` queri
 
 ### Tests
 
-Specs that need a chain call `startLocalNode` (`src/testutil/localNode.ts`): an in-process Hardhat EDR node on port 9545, with ganache's former accounts so signer-derived vectors stay stable. Hardhat is imported dynamically there, since a static import makes mocha (via tsx's CJS hook) load its plugins twice (`HHE2`). Ganache cannot be used: the contracts target Cancun.
+Specs that need a chain call `startLocalNode` (`src/testutil/localNode.ts`): an in-process Hardhat EDR node on port 9545, pinned to Cancun (the minimum hardfork Vela supports; `localNode.spec.ts` checks it), with ganache's former accounts so signer-derived vectors stay stable. Hardhat is imported dynamically there, since a static import makes mocha (via tsx's CJS hook) load its plugins twice (`HHE2`). Ganache cannot be used: the contracts target Cancun.
 
 ### Key derivation flow
 
