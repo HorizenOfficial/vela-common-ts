@@ -46,7 +46,7 @@ ethers
   Notice:     Copyright (c) 2016-2024 Richard Moore.
 
 ================================================================================
-PERMISSIVE DEPENDENCIES - npm (Dev, notable)
+PERMISSIVE DEPENDENCIES - npm (Dev)
 ================================================================================
 
 hardhat
@@ -67,8 +67,44 @@ chai
   Source:     https://github.com/chaijs/chai
   Notice:     Copyright (c) 2017 Chai.js Assertion Library.
 
-ganache
-  Version:    ^7.9.2
+@openzeppelin/contracts
+  Version:    5.6.1
   License:    MIT
-  Source:     https://github.com/trufflesuite/ganache
-  Notice:     Copyright (c) 2019-2022 Truffle, LLC.
+  Source:     https://github.com/OpenZeppelin/openzeppelin-contracts
+  Notice:     Copyright (c) 2016-2024 zOS Global Limited and contributors.
+
+tsx
+  Version:    ^4.21.0
+  License:    MIT
+  Source:     https://github.com/privatenumber/tsx
+  Notice:     Copyright (c) Hiroki Osame.
+
+esbuild
+  Version:    ^0.27.7
+  License:    MIT
+  Source:     https://github.com/evanw/esbuild
+  Notice:     Copyright (c) 2020 Evan Wallace.
+
+typescript
+  Version:    ^5.0.0
+  License:    Apache-2.0
+  Source:     https://github.com/microsoft/TypeScript
+  Notice:     Copyright (c) Microsoft Corporation.
+
+@types/chai
+  Version:    ^5.2.3
+  License:    MIT
+  Source:     https://github.com/DefinitelyTyped/DefinitelyTyped
+  Notice:     Copyright (c) Microsoft Corporation.
+
+@types/elliptic
+  Version:    ^6.4.18
+  License:    MIT
+  Source:     https://github.com/DefinitelyTyped/DefinitelyTyped
+  Notice:     Copyright (c) Microsoft Corporation.
+
+@types/mocha
+  Version:    ^10.0.10
+  License:    MIT
+  Source:     https://github.com/DefinitelyTyped/DefinitelyTyped
+  Notice:     Copyright (c) Microsoft Corporation.

@@ -85,6 +85,7 @@ export declare namespace Structs {
 export interface MockTeeAuthenticatorInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "checkBatchSignature"
       | "checkSignature"
       | "getPubSecp521r1"
       | "getTeeSigner"
@@ -92,6 +93,10 @@ export interface MockTeeAuthenticatorInterface extends Interface {
       | "teeSigner"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "checkBatchSignature",
+    values: [BytesLike[], BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "checkSignature",
     values: [Structs.SignatureParamsStruct, BytesLike]
@@ -110,6 +115,10 @@ export interface MockTeeAuthenticatorInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "teeSigner", values?: undefined): string;
 
+  decodeFunctionResult(
+    functionFragment: "checkBatchSignature",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "checkSignature",
     data: BytesLike
@@ -172,6 +181,12 @@ export interface MockTeeAuthenticator extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  checkBatchSignature: TypedContractMethod<
+    [arg0: BytesLike[], arg1: BytesLike],
+    [boolean],
+    "view"
+  >;
+
   checkSignature: TypedContractMethod<
     [arg0: Structs.SignatureParamsStruct, arg1: BytesLike],
     [boolean],
@@ -190,6 +205,13 @@ export interface MockTeeAuthenticator extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "checkBatchSignature"
+  ): TypedContractMethod<
+    [arg0: BytesLike[], arg1: BytesLike],
+    [boolean],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "checkSignature"
   ): TypedContractMethod<

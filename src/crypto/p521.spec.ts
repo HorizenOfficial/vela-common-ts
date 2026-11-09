@@ -1,11 +1,11 @@
-import { JsonRpcProvider, Signer } from "ethers";
-import ganache, { Server } from "ganache";
+import { Signer } from "ethers";
+import { LocalNode, startLocalNode } from "../testutil/localNode";
 import assert from "assert";
 import { deriveP521PrivateKeyFromSigner } from "./wallet";
 import { decrypt, encrypt, importPrivateKeyFromHex, importPublicKeyFromHex } from "./p521";
 import { bytesToString, hexToBytes, stringToBytes } from "./utils";
 
-let server: Server;
+let node: LocalNode;
 let signer: Signer;
 let signer2: Signer;
 
@@ -20,22 +20,15 @@ describe("P521 test", function () {
   
   before(async () => {
     //launch node
-    server = ganache.server({
-      wallet: {seed: "test test test test test test test test test test test junk"},
-      logging: { quiet: true },
-    });
-    await server.listen(NODE_PORT);
-
-    //connect provider
-    const provider = new JsonRpcProvider(`http://127.0.0.1:${NODE_PORT}`);
-    await provider.getBlockNumber();
+    node = await startLocalNode(NODE_PORT);
+    const provider = node.provider;
     signer = await provider.getSigner(0);
     signer2 = await provider.getSigner(1);
   });
 
   after(async () => {
     //kill node
-    await server.close();
+    await node.close();
   });
 
   it("deterministic key derivation", async () => {

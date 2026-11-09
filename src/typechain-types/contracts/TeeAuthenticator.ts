@@ -88,15 +88,19 @@ export interface TeeAuthenticatorInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "PK_LENGTH"
+      | "UPGRADE_INTERFACE_VERSION"
+      | "checkBatchSignature"
       | "checkSignature"
       | "currentUpdateStep"
       | "getPubSecp521r1"
       | "getStep2TotalLength"
       | "getTeeSigner"
+      | "initialize"
       | "maxVerificationAge"
       | "nitroProver"
       | "owner"
       | "pcr0"
+      | "proxiableUUID"
       | "pubSecp521r1"
       | "renounceOwnership"
       | "step2CurrentIndex"
@@ -108,16 +112,27 @@ export interface TeeAuthenticatorInterface extends Interface {
       | "updateTeeStep2"
       | "updateTeeStep3"
       | "updateTeeStep4"
+      | "upgradeToAndCall"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
+      | "Initialized"
       | "OwnershipTransferred"
       | "PcrZeroUpdate"
       | "TeeUpdate"
+      | "Upgraded"
   ): EventFragment;
 
   encodeFunctionData(functionFragment: "PK_LENGTH", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "checkBatchSignature",
+    values: [BytesLike[], BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "checkSignature",
     values: [Structs.SignatureParamsStruct, BytesLike]
@@ -139,6 +154,10 @@ export interface TeeAuthenticatorInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "initialize",
+    values: [AddressLike, AddressLike, BytesLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "maxVerificationAge",
     values?: undefined
   ): string;
@@ -148,6 +167,10 @@ export interface TeeAuthenticatorInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "pcr0", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "proxiableUUID",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "pubSecp521r1",
     values?: undefined
@@ -189,8 +212,20 @@ export interface TeeAuthenticatorInterface extends Interface {
     functionFragment: "updateTeeStep4",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "upgradeToAndCall",
+    values: [AddressLike, BytesLike]
+  ): string;
 
   decodeFunctionResult(functionFragment: "PK_LENGTH", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "checkBatchSignature",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "checkSignature",
     data: BytesLike
@@ -211,6 +246,7 @@ export interface TeeAuthenticatorInterface extends Interface {
     functionFragment: "getTeeSigner",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "maxVerificationAge",
     data: BytesLike
@@ -221,6 +257,10 @@ export interface TeeAuthenticatorInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pcr0", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "proxiableUUID",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "pubSecp521r1",
     data: BytesLike
@@ -256,6 +296,22 @@ export interface TeeAuthenticatorInterface extends Interface {
     functionFragment: "updateTeeStep4",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "upgradeToAndCall",
+    data: BytesLike
+  ): Result;
+}
+
+export namespace InitializedEvent {
+  export type InputTuple = [version: BigNumberish];
+  export type OutputTuple = [version: bigint];
+  export interface OutputObject {
+    version: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace OwnershipTransferredEvent {
@@ -309,6 +365,18 @@ export namespace TeeUpdateEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace UpgradedEvent {
+  export type InputTuple = [implementation: AddressLike];
+  export type OutputTuple = [implementation: string];
+  export interface OutputObject {
+    implementation: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export interface TeeAuthenticator extends BaseContract {
   connect(runner?: ContractRunner | null): TeeAuthenticator;
   waitForDeployment(): Promise<this>;
@@ -354,6 +422,14 @@ export interface TeeAuthenticator extends BaseContract {
 
   PK_LENGTH: TypedContractMethod<[], [bigint], "view">;
 
+  UPGRADE_INTERFACE_VERSION: TypedContractMethod<[], [string], "view">;
+
+  checkBatchSignature: TypedContractMethod<
+    [entryHashes: BytesLike[], signature: BytesLike],
+    [boolean],
+    "view"
+  >;
+
   checkSignature: TypedContractMethod<
     [params: Structs.SignatureParamsStruct, signature: BytesLike],
     [boolean],
@@ -368,6 +444,17 @@ export interface TeeAuthenticator extends BaseContract {
 
   getTeeSigner: TypedContractMethod<[], [string], "view">;
 
+  initialize: TypedContractMethod<
+    [
+      owner: AddressLike,
+      _nitroProver: AddressLike,
+      _pcr0: BytesLike,
+      _maxVerificationAge: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+
   maxVerificationAge: TypedContractMethod<[], [bigint], "view">;
 
   nitroProver: TypedContractMethod<[], [string], "view">;
@@ -375,6 +462,8 @@ export interface TeeAuthenticator extends BaseContract {
   owner: TypedContractMethod<[], [string], "view">;
 
   pcr0: TypedContractMethod<[], [string], "view">;
+
+  proxiableUUID: TypedContractMethod<[], [string], "view">;
 
   pubSecp521r1: TypedContractMethod<[], [string], "view">;
 
@@ -410,6 +499,12 @@ export interface TeeAuthenticator extends BaseContract {
 
   updateTeeStep4: TypedContractMethod<[], [void], "nonpayable">;
 
+  upgradeToAndCall: TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
+  >;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -417,6 +512,16 @@ export interface TeeAuthenticator extends BaseContract {
   getFunction(
     nameOrSignature: "PK_LENGTH"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "UPGRADE_INTERFACE_VERSION"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "checkBatchSignature"
+  ): TypedContractMethod<
+    [entryHashes: BytesLike[], signature: BytesLike],
+    [boolean],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "checkSignature"
   ): TypedContractMethod<
@@ -437,6 +542,18 @@ export interface TeeAuthenticator extends BaseContract {
     nameOrSignature: "getTeeSigner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "initialize"
+  ): TypedContractMethod<
+    [
+      owner: AddressLike,
+      _nitroProver: AddressLike,
+      _pcr0: BytesLike,
+      _maxVerificationAge: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "maxVerificationAge"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
@@ -447,6 +564,9 @@ export interface TeeAuthenticator extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "pcr0"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "proxiableUUID"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "pubSecp521r1"
@@ -481,7 +601,21 @@ export interface TeeAuthenticator extends BaseContract {
   getFunction(
     nameOrSignature: "updateTeeStep4"
   ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "upgradeToAndCall"
+  ): TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
+  >;
 
+  getEvent(
+    key: "Initialized"
+  ): TypedContractEvent<
+    InitializedEvent.InputTuple,
+    InitializedEvent.OutputTuple,
+    InitializedEvent.OutputObject
+  >;
   getEvent(
     key: "OwnershipTransferred"
   ): TypedContractEvent<
@@ -503,8 +637,26 @@ export interface TeeAuthenticator extends BaseContract {
     TeeUpdateEvent.OutputTuple,
     TeeUpdateEvent.OutputObject
   >;
+  getEvent(
+    key: "Upgraded"
+  ): TypedContractEvent<
+    UpgradedEvent.InputTuple,
+    UpgradedEvent.OutputTuple,
+    UpgradedEvent.OutputObject
+  >;
 
   filters: {
+    "Initialized(uint64)": TypedContractEvent<
+      InitializedEvent.InputTuple,
+      InitializedEvent.OutputTuple,
+      InitializedEvent.OutputObject
+    >;
+    Initialized: TypedContractEvent<
+      InitializedEvent.InputTuple,
+      InitializedEvent.OutputTuple,
+      InitializedEvent.OutputObject
+    >;
+
     "OwnershipTransferred(address,address)": TypedContractEvent<
       OwnershipTransferredEvent.InputTuple,
       OwnershipTransferredEvent.OutputTuple,
@@ -536,6 +688,17 @@ export interface TeeAuthenticator extends BaseContract {
       TeeUpdateEvent.InputTuple,
       TeeUpdateEvent.OutputTuple,
       TeeUpdateEvent.OutputObject
+    >;
+
+    "Upgraded(address)": TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
+    >;
+    Upgraded: TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
     >;
   };
 }

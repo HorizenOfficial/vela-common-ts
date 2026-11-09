@@ -6,6 +6,7 @@ export type { IAuthorityRegistry } from "./IAuthorityRegistry";
 export type { IDefaultAuthorityChecker } from "./IDefaultAuthorityChecker";
 export type { INitroProver } from "./INitroProver";
 export type { IProcessorEndpoint } from "./IProcessorEndpoint";
+export type { IProcessorEndpointState } from "./IProcessorEndpointState";
 export type { ITeeAuthenticator } from "./ITeeAuthenticator";
 export type { ITeeAuthenticatorAdmin } from "./ITeeAuthenticatorAdmin";
 export type { ITokenAllowlist } from "./ITokenAllowlist";

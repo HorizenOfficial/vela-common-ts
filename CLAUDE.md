@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm install              # Install dependencies
-npm run build            # Full build (esbuild bundle + TypeScript declarations)
+npm run build            # Full build (deletes dist, then esbuild bundle + TypeScript declarations)
 npm run build:bundle     # ESM bundle only (esbuild, browser platform, ES2020)
-npm run build:types      # Type declarations only (tsc --emitDeclarationOnly)
+npm run build:types      # Type declarations only (tsc -p tsconfig.build.json: excludes specs and src/testutil)
 npm run check            # Type check without emitting
 npm test                 # Run all tests (mocha + tsx)
 ```
@@ -37,6 +37,8 @@ Everything is re-exported from `src/index.ts`:
 - **blockchain/** — `VelaClient` wraps two on-chain contracts (`ITeeAuthenticator`, `ProcessorEndpoint`) via typechain-types. Handles request submission (including deploy requests), ERC-20 token approval, TEE encryption, on-chain event querying/decryption, and claims.
   - **Block range convention (inverted from Ethereum):** in methods taking `fromBlock` / `toBlock` (`getRequestCompletedEvent`, `getDeployRequestCompletedEvent`, `getCurrentUserEvents`, `getAppEvents`), `fromBlock` is the **most recent** block and `toBlock` is the **oldest** — i.e. `fromBlock >= toBlock`. This is the opposite of Ethereum's standard (where `fromBlock` is older). Passing `fromBlock < toBlock` throws.
   - `UserEvent` carries encrypted per-user payloads (decrypted via `decryptAndFilterEvents`); `AppEvent` carries application-wide plaintext data returned as-is by `getAppEvents`.
+  - `RequestType` and `ErrorCode` mirror the `Structs.sol` enums of the targeted vela release; `src/blockchain/enums.spec.ts` pins their values. `TRUSTPROCESS` is created on-chain by triggers and cannot be submitted.
+  - Targets vela **v0.3.0**: contracts run behind UUPS proxies (callers pass proxy addresses), and one transaction may settle a batch of requests of one app, each still emitting its own events. Never assume one completed request per transaction or block.
 
 - **subgraph/** — `SubgraphClient` queries indexed data via GraphQL as an alternative to direct on-chain event filtering. Covers `RequestCompleted`, `DeployRequestCompleted`, `UserEvent`, `AppEvent`, `OnChainRefund`, `OnChainWithdrawal`, and `ClaimExecuted` projections. Provides pagination via `sortKey` and batch decryption of user events via `fetchAndDecryptUserEvents`.
 
@@ -46,7 +48,11 @@ Both modules can read the same `UserEvent` / `AppEvent` data. `VelaClient` queri
 
 ### typechain-types
 
-`src/typechain-types/` contains generated contract bindings. These are **excluded from tsconfig compilation** but consumed by the blockchain module. To regenerate, compile contracts with Hardhat in the vela repo and copy `typechain-types/` here.
+`src/typechain-types/` contains generated contract bindings. These are **excluded from tsconfig compilation** but consumed by the blockchain module. To regenerate, check out the matching vela tag, run `npx hardhat clean && npx hardhat compile` in `contracts/`, and replace `src/typechain-types/` with the output (`clean` drops bindings of deleted contracts). `ERC1967Proxy` is not among them; tests take it from the `@openzeppelin/contracts` dev dependency, pinned to vela's version.
+
+### Tests
+
+Specs that need a chain call `startLocalNode` (`src/testutil/localNode.ts`): an in-process Hardhat EDR node on port 9545, pinned to Cancun (the minimum hardfork Vela supports; `localNode.spec.ts` checks it), with ganache's former accounts so signer-derived vectors stay stable. Hardhat is imported dynamically there, since a static import makes mocha (via tsx's CJS hook) load its plugins twice (`HHE2`). Ganache cannot be used: the contracts target Cancun.
 
 ### Key derivation flow
 
