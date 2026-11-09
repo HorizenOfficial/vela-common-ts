@@ -13,7 +13,25 @@ export enum RequestType {
   DEPLOYAPP = 0,
   PROCESS, 
   DEANONYMIZATION, 
-  ASSOCIATEKEY
+  ASSOCIATEKEY,
+  /** Created on-chain by an app's trigger contract; `submitRequest` rejects it (InvalidRequestType). */
+  TRUSTPROCESS
+}
+
+/** Mirrors Structs.ErrorCode; compare with `RequestResult.errorCode` via Number(). */
+export enum ErrorCode {
+  NO_ERROR = 0,
+  UNKNOWN,
+  INTERNAL,
+  APPLICATION_ALREADY_DEPLOYED,
+  FUNCTION_NOT_FOUND,
+  DEPOSIT_FAILED,
+  REQUEST_FUNC_FAILED,
+  WRONG_KEY_SENT,
+  PUB_KEY_NOT_REGISTERED,
+  NO_REPORT_DATA_FOUND,
+  WASM_INTERNAL,
+  INSUFFICIENT_FUEL
 }
 
 export class RequestReceipt {
@@ -29,7 +47,7 @@ export class RequestResult {
     public applicationId: bigint,
     public applicationFees: bigint,
     public status: bigint,
-    public errorCode: bigint | undefined,
+    public errorCode: bigint,
     public errorMessage: string | undefined,
   ) {}
 }
@@ -189,7 +207,7 @@ export class VelaClient {
       event.args.applicationId,
       event.args.applicationFees,
       event.args.status,
-      event.args.errorCode || undefined,
+      event.args.errorCode,
       event.args.errorMessage || undefined
     );
   };
@@ -223,7 +241,7 @@ export class VelaClient {
       event.args.applicationId,
       event.args.applicationFees,
       event.args.status,
-      event.args.errorCode || undefined,
+      event.args.errorCode,
       event.args.errorMessage || undefined
     );
   };

@@ -11,8 +11,37 @@ import type {
 const _abi = [
   {
     inputs: [],
+    name: "EmptyBatch",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "TeeIsNotSet",
     type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32[]",
+        name: "entryHashes",
+        type: "bytes32[]",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "checkBatchSignature",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [

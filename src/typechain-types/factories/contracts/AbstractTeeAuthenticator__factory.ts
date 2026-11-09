@@ -38,6 +38,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "EmptyBatch",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "TeeIsNotSet",
     type: "error",
   },
@@ -49,6 +54,30 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32[]",
+        name: "entryHashes",
+        type: "bytes32[]",
+      },
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+    ],
+    name: "checkBatchSignature",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",

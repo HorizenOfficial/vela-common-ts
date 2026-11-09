@@ -11,5 +11,8 @@ export type { AbstractTeeAuthenticator } from "./AbstractTeeAuthenticator";
 export type { AuthorityRegistry } from "./AuthorityRegistry";
 export type { DefaultAuthority } from "./DefaultAuthority";
 export type { ProcessorEndpoint } from "./ProcessorEndpoint";
+export type { ProcessorEndpointExtension } from "./ProcessorEndpointExtension";
+export type { ProcessorEndpointStorage } from "./ProcessorEndpointStorage";
+export type { RequestQueues } from "./RequestQueues";
 export type { TeeAuthenticator } from "./TeeAuthenticator";
 export type { TokenAllowlist } from "./TokenAllowlist";

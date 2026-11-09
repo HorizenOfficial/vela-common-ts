@@ -15,8 +15,24 @@ const _abi = [
     type: "error",
   },
   {
+    inputs: [
+      {
+        internalType: "uint64",
+        name: "selectedApplicationId",
+        type: "uint64",
+      },
+    ],
+    name: "ApplicationNotSelected",
+    type: "error",
+  },
+  {
     inputs: [],
     name: "AuthorityNotAllowed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BatchNotAllowed",
     type: "error",
   },
   {
@@ -27,6 +43,11 @@ const _abi = [
   {
     inputs: [],
     name: "DeployerNotAllowed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "EmptyBatch",
     type: "error",
   },
   {
@@ -47,6 +68,11 @@ const _abi = [
   {
     inputs: [],
     name: "InvalidApplicationId",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidExtension",
     type: "error",
   },
   {
@@ -97,6 +123,17 @@ const _abi = [
   {
     inputs: [],
     name: "MaxNumOfApplicationsExceeded",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum Structs.RequestType",
+        name: "queueType",
+        type: "uint8",
+      },
+    ],
+    name: "PriorityQueueNotServed",
     type: "error",
   },
   {
@@ -153,6 +190,25 @@ const _abi = [
       },
     ],
     name: "AppEvent",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32[]",
+        name: "entryHashes",
+        type: "bytes32[]",
+      },
+    ],
+    name: "BatchProcessed",
     type: "event",
   },
   {
@@ -427,6 +483,19 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "uint256",
+        name: "newGrace",
+        type: "uint256",
+      },
+    ],
+    name: "SelectionGraceUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "uint64",
         name: "applicationId",
@@ -664,11 +733,127 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "amount",
         type: "uint256",
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "prevStateRoot",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "newStateRoot",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "processedRequestId",
+            type: "bytes32",
+          },
+          {
+            components: [
+              {
+                internalType: "bytes[]",
+                name: "events",
+                type: "bytes[]",
+              },
+              {
+                internalType: "bytes32[]",
+                name: "subTypes",
+                type: "bytes32[]",
+              },
+            ],
+            internalType: "struct Structs.EventData",
+            name: "userEvents",
+            type: "tuple",
+          },
+          {
+            components: [
+              {
+                internalType: "bytes[]",
+                name: "events",
+                type: "bytes[]",
+              },
+              {
+                internalType: "bytes32[]",
+                name: "subTypes",
+                type: "bytes32[]",
+              },
+            ],
+            internalType: "struct Structs.EventData",
+            name: "appEvents",
+            type: "tuple",
+          },
+          {
+            components: [
+              {
+                internalType: "address",
+                name: "tokenAddress",
+                type: "address",
+              },
+              {
+                internalType: "address payable",
+                name: "receiver",
+                type: "address",
+              },
+              {
+                internalType: "uint256",
+                name: "amount",
+                type: "uint256",
+              },
+            ],
+            internalType: "struct Structs.WithdrawalRequest[]",
+            name: "withdrawalRequests",
+            type: "tuple[]",
+          },
+          {
+            internalType: "uint256",
+            name: "refund",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "applicationFees",
+            type: "uint256",
+          },
+          {
+            internalType: "enum Structs.ErrorCode",
+            name: "errorCode",
+            type: "uint8",
+          },
+          {
+            internalType: "string",
+            name: "errorMsg",
+            type: "string",
+          },
+        ],
+        internalType: "struct Structs.BatchEntry[]",
+        name: "entries",
+        type: "tuple[]",
+      },
+      {
+        internalType: "bytes",
+        name: "batchSignature",
+        type: "bytes",
+      },
+    ],
+    name: "batchStateUpdate",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -687,6 +872,38 @@ const _abi = [
     name: "claim",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "extension",
+    outputs: [
+      {
+        internalType: "address",
+        name: "extensionAddress",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "facilitatorNonces",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "nonce",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -746,105 +963,6 @@ const _abi = [
         internalType: "uint64[]",
         name: "",
         type: "uint64[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-    ],
-    name: "getFacilitatorNonce",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getNextPendingRequest",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "uint256",
-            name: "timestamp",
-            type: "uint256",
-          },
-          {
-            internalType: "address",
-            name: "tokenAddress",
-            type: "address",
-          },
-          {
-            internalType: "uint256",
-            name: "assetAmount",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "maxFeeValue",
-            type: "uint256",
-          },
-          {
-            internalType: "bytes32",
-            name: "requestId",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes",
-            name: "payload",
-            type: "bytes",
-          },
-          {
-            internalType: "address",
-            name: "sender",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "facilitator",
-            type: "address",
-          },
-          {
-            internalType: "uint64",
-            name: "applicationId",
-            type: "uint64",
-          },
-          {
-            internalType: "uint8",
-            name: "protocolVersion",
-            type: "uint8",
-          },
-          {
-            internalType: "enum Structs.RequestType",
-            name: "requestType",
-            type: "uint8",
-          },
-        ],
-        internalType: "struct Structs.PendingRequest",
-        name: "",
-        type: "tuple",
-      },
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -1015,6 +1133,92 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "maxCount",
+        type: "uint256",
+      },
+    ],
+    name: "getPendingRequestsWithStateRoot",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "applicationId",
+        type: "uint64",
+      },
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "tokenAddress",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "assetAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "maxFeeValue",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "requestId",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes",
+            name: "payload",
+            type: "bytes",
+          },
+          {
+            internalType: "address",
+            name: "sender",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "facilitator",
+            type: "address",
+          },
+          {
+            internalType: "uint64",
+            name: "applicationId",
+            type: "uint64",
+          },
+          {
+            internalType: "uint8",
+            name: "protocolVersion",
+            type: "uint8",
+          },
+          {
+            internalType: "enum Structs.RequestType",
+            name: "requestType",
+            type: "uint8",
+          },
+        ],
+        internalType: "struct Structs.PendingRequest[]",
+        name: "requests",
+        type: "tuple[]",
+      },
+      {
+        internalType: "bytes32",
+        name: "stateRoot",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "getTriggerQueueSize",
     outputs: [
@@ -1152,7 +1356,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "amount",
         type: "uint256",
       },
     ],
@@ -1170,6 +1374,82 @@ const _abi = [
     name: "removeAllowedDeployer",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "id",
+        type: "bytes32",
+      },
+    ],
+    name: "requestById",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "timestamp",
+            type: "uint256",
+          },
+          {
+            internalType: "address",
+            name: "tokenAddress",
+            type: "address",
+          },
+          {
+            internalType: "uint256",
+            name: "assetAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "maxFeeValue",
+            type: "uint256",
+          },
+          {
+            internalType: "bytes32",
+            name: "requestId",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes",
+            name: "payload",
+            type: "bytes",
+          },
+          {
+            internalType: "address",
+            name: "sender",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "facilitator",
+            type: "address",
+          },
+          {
+            internalType: "uint64",
+            name: "applicationId",
+            type: "uint64",
+          },
+          {
+            internalType: "uint8",
+            name: "protocolVersion",
+            type: "uint8",
+          },
+          {
+            internalType: "enum Structs.RequestType",
+            name: "requestType",
+            type: "uint8",
+          },
+        ],
+        internalType: "struct Structs.PendingRequest",
+        name: "request",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -1453,7 +1733,7 @@ const _abi = [
     outputs: [
       {
         internalType: "contract ITokenAllowlist",
-        name: "",
+        name: "allowlist",
         type: "address",
       },
     ],
@@ -1472,7 +1752,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "amount",
         type: "uint256",
       },
     ],
@@ -1491,7 +1771,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "amount",
         type: "uint256",
       },
     ],
@@ -1533,6 +1813,19 @@ const _abi = [
       },
     ],
     name: "updateQueueThreshold",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "newGrace",
+        type: "uint256",
+      },
+    ],
+    name: "updateSelectionGrace",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
