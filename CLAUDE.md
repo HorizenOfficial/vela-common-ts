@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm install              # Install dependencies
 npm run build            # Full build (esbuild bundle + TypeScript declarations)
 npm run build:bundle     # ESM bundle only (esbuild, browser platform, ES2020)
-npm run build:types      # Type declarations only (tsc --emitDeclarationOnly)
+npm run build:types      # Type declarations only (tsc -p tsconfig.build.json: excludes specs and src/testutil)
 npm run check            # Type check without emitting
 npm test                 # Run all tests (mocha + tsx)
 ```

@@ -47,7 +47,7 @@ export class RequestResult {
     public applicationId: bigint,
     public applicationFees: bigint,
     public status: bigint,
-    public errorCode: bigint | undefined,
+    public errorCode: bigint,
     public errorMessage: string | undefined,
   ) {}
 }
@@ -207,7 +207,7 @@ export class VelaClient {
       event.args.applicationId,
       event.args.applicationFees,
       event.args.status,
-      event.args.errorCode || undefined,
+      event.args.errorCode,
       event.args.errorMessage || undefined
     );
   };
@@ -241,7 +241,7 @@ export class VelaClient {
       event.args.applicationId,
       event.args.applicationFees,
       event.args.status,
-      event.args.errorCode || undefined,
+      event.args.errorCode,
       event.args.errorMessage || undefined
     );
   };

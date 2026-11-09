@@ -124,7 +124,7 @@ enum RequestType {
 
 #### `ErrorCode`
 
-Mirrors `Structs.ErrorCode` in the Vela contracts. `RequestResult.errorCode` (bigint) and the subgraph's `errorCode` (number) carry these values; compare with `Number(result.errorCode) === ErrorCode.WRONG_KEY_SENT`.
+Mirrors `Structs.ErrorCode` in the Vela contracts. `RequestResult.errorCode` (bigint) and the subgraph's `errorCode` (number) carry these values; compare with `Number(result.errorCode) === ErrorCode.WRONG_KEY_SENT`. A successful request has `errorCode` `0n` (`ErrorCode.NO_ERROR`); before this version, `getRequestCompletedEvent` and `getDeployRequestCompletedEvent` returned `undefined` instead.
 
 ```typescript
 enum ErrorCode {
@@ -348,6 +348,8 @@ The library uses:
 npm install
 npm run build
 ```
+
+Type declarations are emitted with `tsconfig.build.json`, which leaves specs and `src/testutil` out of the published `dist`.
 
 ### Run Tests
 

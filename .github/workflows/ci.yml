@@ -47,6 +47,7 @@ jobs:
           test -f dist/index.d.ts || (echo "dist/index.d.ts not found" && exit 1)
           test -f dist/node.js || (echo "dist/node.js not found" && exit 1)
           test -f dist/node.d.ts || (echo "dist/node.d.ts not found" && exit 1)
+          test -z "$(find dist -name '*.spec.d.ts' -o -name testutil)" || (echo "test files found in dist" && exit 1)
           echo "Build artifacts verified successfully"
 
   release:

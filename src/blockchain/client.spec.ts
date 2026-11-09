@@ -1,9 +1,9 @@
-import { BaseContract, ContractFactory, JsonRpcProvider, Signer, ZeroHash } from "ethers";
+import { BaseContract, ContractFactory, JsonRpcProvider, Signer, ZeroHash, solidityPackedKeccak256 } from "ethers";
 import { createRequire } from "module";
 import { ETH_TOKEN } from "../constants";
 import { LocalNode, startLocalNode } from "../testutil/localNode";
 import assert from "assert";
-import { VelaClient, RequestType } from "../blockchain/client";
+import { VelaClient, RequestType, ErrorCode } from "../blockchain/client";
 import { AuthorityRegistry, AuthorityRegistry__factory, DefaultAuthority__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory, ProcessorEndpointExtension__factory, TestTrigger__factory, TokenAllowlist__factory } from "../typechain-types/index";
 import { decrypt, encrypt, exportPublicKeyToHex, generateKeyPair, P521KeyPair } from "../crypto/p521";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
@@ -150,6 +150,12 @@ describe("Vela Client test", function () {
     assert.notEqual(submitResponse.transactionReceipt, undefined);
   })
 
+  it("getDeployRequestCompletedEvent reports NO_ERROR for a successful deploy", async () => {
+    const result = await client.getDeployRequestCompletedEvent(applicationId, undefined, undefined, undefined);
+    assert.notEqual(result, undefined);
+    assert.equal(Number(result!.errorCode), ErrorCode.NO_ERROR);
+  });
+
   it("getPendingClaims", async () => {
     const signer = await provider.getSigner(0);
     const address = await signer.getAddress();
@@ -164,6 +170,47 @@ describe("Vela Client test", function () {
     const receipt = await tx.wait();
     assert.notEqual(receipt, undefined);
     assert.equal(receipt!.status, 1);
+  });
+
+  it("per-request lookups when one transaction settles a batch", async () => {
+    const ok = await client.submitRequestAndWaitForRequestId(0, applicationId, RequestType.PROCESS, Uint8Array.from([1]), ETH_TOKEN, BigInt(10), BigInt(0));
+    const failed = await client.submitRequestAndWaitForRequestId(0, applicationId, RequestType.PROCESS, Uint8Array.from([2]), ETH_TOKEN, BigInt(10), BigInt(0));
+
+    // Settle the app's whole queue (FIFO), including requests left by earlier tests.
+    const pending = (await processorEndpoint.getPendingRequests()).filter(p => p.applicationId === applicationId);
+    assert.deepStrictEqual(pending.slice(-2).map(p => p.requestId), [ok.requestId, failed.requestId]);
+
+    let root = await processorEndpoint.applicationStateRoots(applicationId);
+    const noEvents = { events: [], subTypes: [] };
+    const entries = pending.map((p, i) => {
+      const prevStateRoot = root;
+      if (p.requestId === failed.requestId) {
+        return { prevStateRoot, newStateRoot: prevStateRoot, processedRequestId: p.requestId, userEvents: noEvents, appEvents: noEvents,
+          withdrawalRequests: [], refund: 0, applicationFees: 0, errorCode: ErrorCode.WASM_INTERNAL, errorMsg: "guest execution timed out" };
+      }
+      root = solidityPackedKeccak256(["bytes32", "uint256"], [prevStateRoot, i]);
+      return { prevStateRoot, newStateRoot: root, processedRequestId: p.requestId, userEvents: noEvents,
+        appEvents: { events: [p.requestId], subTypes: [BYTES32_ZERO] },
+        withdrawalRequests: [], refund: 0, applicationFees: 0, errorCode: ErrorCode.NO_ERROR, errorMsg: "" };
+    });
+    const receipt = await (await processorEndpoint.batchStateUpdate(applicationId, entries, "0x")).wait();
+    const completed = receipt!.logs.filter(l => processorEndpoint.interface.parseLog(l)?.name === "RequestCompleted");
+    assert.equal(completed.length, pending.length);
+    assert.ok(completed.length >= 2);
+
+    const okResult = await client.getRequestCompletedEvent(ok.requestId, undefined, undefined);
+    assert.equal(okResult!.requestId, ok.requestId);
+    assert.equal(Number(okResult!.errorCode), ErrorCode.NO_ERROR);
+
+    const failedResult = await client.getRequestCompletedEvent(failed.requestId, undefined, undefined);
+    assert.equal(failedResult!.requestId, failed.requestId);
+    assert.equal(Number(failedResult!.errorCode), ErrorCode.WASM_INTERNAL);
+    assert.equal(failedResult!.errorMessage, "guest execution timed out");
+
+    const okEvents = await client.getAppEvents(undefined, undefined, applicationId, ok.requestId, undefined);
+    assert.deepStrictEqual(okEvents.map(e => bytesToHex(e.data)), [ok.requestId.slice(2)]);
+    const failedEvents = await client.getAppEvents(undefined, undefined, applicationId, failed.requestId, undefined);
+    assert.equal(failedEvents.length, 0);
   });
 
   it("getCurrentUserEvents (just decrypting - without retrieving events)", async () => {

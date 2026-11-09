@@ -29,7 +29,7 @@
     "build": "npm run build:bundle && npm run build:node && npm run build:types",
     "build:bundle": "esbuild src/index.ts --bundle --platform=browser --format=esm --target=es2020 --outdir=dist --sourcemap",
     "build:node": "esbuild src/node.ts --bundle --platform=node --format=esm --target=es2020 --packages=external --outfile=dist/node.js --sourcemap",
-    "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist",
+    "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly --declaration --outDir dist",
     "check": "tsc --noEmit",
     "test": "node --experimental-global-webcrypto --import tsx node_modules/.bin/mocha 'src/**/*.spec.ts'"
   },
@@ -51,7 +51,6 @@
     "ethers": "^6.0.0"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-ethers": "^4.0.4",
     "@openzeppelin/contracts": "5.6.1",
     "@types/chai": "^5.2.3",
     "@types/elliptic": "^6.4.18",
@@ -60,8 +59,6 @@
     "ethers": "^6.16.0",
     "hardhat": "^3.1.5",
     "mocha": "^11.7.5",
-    "tree-kill": "^1.2.2",
-    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.0.0"
   },
