@@ -79,6 +79,12 @@ tsx
   Source:     https://github.com/privatenumber/tsx
   Notice:     Copyright (c) Hiroki Osame.
 
+esbuild
+  Version:    ^0.27.7
+  License:    MIT
+  Source:     https://github.com/evanw/esbuild
+  Notice:     Copyright (c) 2020 Evan Wallace.
+
 typescript
   Version:    ^5.0.0
   License:    Apache-2.0

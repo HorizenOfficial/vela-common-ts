@@ -349,7 +349,7 @@ npm install
 npm run build
 ```
 
-Type declarations are emitted with `tsconfig.build.json`, which leaves specs and `src/testutil` out of the published `dist`.
+`npm run build` deletes `dist` first. Type declarations are emitted with `tsconfig.build.json`, which leaves specs and `src/testutil` out of the published `dist`.
 
 ### Run Tests
 
