@@ -8,5 +8,8 @@ export { AbstractTeeAuthenticator__factory } from "./AbstractTeeAuthenticator__f
 export { AuthorityRegistry__factory } from "./AuthorityRegistry__factory";
 export { DefaultAuthority__factory } from "./DefaultAuthority__factory";
 export { ProcessorEndpoint__factory } from "./ProcessorEndpoint__factory";
+export { ProcessorEndpointExtension__factory } from "./ProcessorEndpointExtension__factory";
+export { ProcessorEndpointStorage__factory } from "./ProcessorEndpointStorage__factory";
+export { RequestQueues__factory } from "./RequestQueues__factory";
 export { TeeAuthenticator__factory } from "./TeeAuthenticator__factory";
 export { TokenAllowlist__factory } from "./TokenAllowlist__factory";

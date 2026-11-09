@@ -67,8 +67,8 @@ chai
   Source:     https://github.com/chaijs/chai
   Notice:     Copyright (c) 2017 Chai.js Assertion Library.
 
-ganache
-  Version:    ^7.9.2
+@openzeppelin/contracts
+  Version:    5.6.1
   License:    MIT
-  Source:     https://github.com/trufflesuite/ganache
-  Notice:     Copyright (c) 2019-2022 Truffle, LLC.
+  Source:     https://github.com/OpenZeppelin/openzeppelin-contracts
+  Notice:     Copyright (c) 2016-2024 zOS Global Limited and contributors.

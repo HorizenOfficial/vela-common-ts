@@ -1,16 +1,17 @@
-import { JsonRpcProvider, ZeroHash } from "ethers";
+import { BaseContract, ContractFactory, JsonRpcProvider, Signer, ZeroHash } from "ethers";
+import { createRequire } from "module";
 import { ETH_TOKEN } from "../constants";
-import ganache, { Server } from "ganache";
+import { LocalNode, startLocalNode } from "../testutil/localNode";
 import assert from "assert";
 import { VelaClient, RequestType } from "../blockchain/client";
-import { AuthorityRegistry, AuthorityRegistry__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory, TestTrigger__factory, TokenAllowlist__factory } from "../typechain-types/index";
+import { AuthorityRegistry, AuthorityRegistry__factory, DefaultAuthority__factory, MockTeeAuthenticator__factory, ProcessorEndpoint, ProcessorEndpoint__factory, ProcessorEndpointExtension__factory, TestTrigger__factory, TokenAllowlist__factory } from "../typechain-types/index";
 import { decrypt, encrypt, exportPublicKeyToHex, generateKeyPair, P521KeyPair } from "../crypto/p521";
 import { deriveP521PrivateKeyFromSigner } from "../crypto/wallet";
 import { bytesToHex, bytesToString, stringToBytes } from "../crypto/utils";
 import { UserEventEvent } from "../typechain-types/contracts/ProcessorEndpoint";
 import { TypedContractEvent, TypedEventLog } from "../typechain-types/common";
 
-let server: Server;
+let node: LocalNode;
 let provider: JsonRpcProvider;
 let client: VelaClient;
 let processorEndpoint: ProcessorEndpoint;
@@ -22,20 +23,23 @@ const NODE_PORT = 9545
 const BYTES32_ZERO = ZeroHash;
 const INITIAL_STATE_ROOT = "0x0000000000000000000000000000000000000000000000000000000000000001";
 
+const ERC1967Proxy = createRequire(import.meta.url)("@openzeppelin/contracts/build/contracts/ERC1967Proxy.json");
+
+// Deploys `implementation` behind an ERC1967 (UUPS) proxy, running `initialize(...initArgs)`.
+async function deployUupsProxy(signer: Signer, implementation: BaseContract, initArgs: unknown[]): Promise<string> {
+  const initData = implementation.interface.encodeFunctionData("initialize", initArgs);
+  const proxy = await new ContractFactory(ERC1967Proxy.abi, ERC1967Proxy.bytecode, signer).deploy(await implementation.getAddress(), initData);
+  await proxy.waitForDeployment();
+  return await proxy.getAddress();
+}
+
 describe("Vela Client test", function () {
   this.timeout(20000);
   
   before(async () => {
     //launch node
-    server = ganache.server({
-      wallet: {seed: "test test test test test test test test test test test junk"},
-      logging: { quiet: true },
-    });    
-    await server.listen(NODE_PORT);
-
-    //connect provider
-    provider = new JsonRpcProvider(`http://127.0.0.1:${NODE_PORT}`);
-    await provider.getBlockNumber();
+    node = await startLocalNode(NODE_PORT);
+    provider = node.provider;
 
     //generate key
 
@@ -47,13 +51,28 @@ describe("Vela Client test", function () {
     const teeAuthenticator = await new MockTeeAuthenticator__factory(signer).deploy(signer, "0x" + pubKey);
     await teeAuthenticator.waitForDeployment();
     
-    authorityRegistry = await new AuthorityRegistry__factory(signer).deploy(signer, signer);
-    await authorityRegistry.waitForDeployment();
+    const defaultAuthority = await new DefaultAuthority__factory(signer).deploy(signer);
+    await defaultAuthority.waitForDeployment();
+    const authorityRegistryImpl = await new AuthorityRegistry__factory(signer).deploy();
+    await authorityRegistryImpl.waitForDeployment();
+    authorityRegistry = AuthorityRegistry__factory.connect(
+      await deployUupsProxy(signer, authorityRegistryImpl, [await signer.getAddress(), await defaultAuthority.getAddress()]),
+      signer
+    );
     const tokenAllowlist = await new TokenAllowlist__factory(signer).deploy(signer);
     await tokenAllowlist.waitForDeployment();
-    // ctor: (tee, authorityRegistry, updateStatusOperator, admin, resetOperator, minFeePerRequest, tokenAllowlist)
-    processorEndpoint = await new ProcessorEndpoint__factory(signer).deploy(teeAuthenticator, authorityRegistry, signer, signer, signer, 0, tokenAllowlist);
-    await processorEndpoint.waitForDeployment();
+    const extension = await new ProcessorEndpointExtension__factory(signer).deploy();
+    await extension.waitForDeployment();
+    const processorEndpointImpl = await new ProcessorEndpoint__factory(signer).deploy(extension);
+    await processorEndpointImpl.waitForDeployment();
+    // initialize: (tee, authorityRegistry, updateStatusOperator, admin, resetOperator, minFeePerRequest, tokenAllowlist)
+    processorEndpoint = ProcessorEndpoint__factory.connect(
+      await deployUupsProxy(signer, processorEndpointImpl, [
+        await teeAuthenticator.getAddress(), await authorityRegistry.getAddress(), await signer.getAddress(),
+        await signer.getAddress(), await signer.getAddress(), 0, await tokenAllowlist.getAddress(),
+      ]),
+      signer
+    );
 
     //bootstrap an application: submitDeployRequest then finalize via stateUpdate
     const deployTx = await processorEndpoint.submitDeployRequest(0, "0x00");
@@ -82,7 +101,7 @@ describe("Vela Client test", function () {
 
   after(async () => {
     //kill node
-    await server.close();
+    await node.close();
   });
 
   // TESTS

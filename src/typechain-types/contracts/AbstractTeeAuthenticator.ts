@@ -86,12 +86,17 @@ export interface AbstractTeeAuthenticatorInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "PK_LENGTH"
+      | "checkBatchSignature"
       | "checkSignature"
       | "getPubSecp521r1"
       | "getTeeSigner"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "PK_LENGTH", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "checkBatchSignature",
+    values: [BytesLike[], BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "checkSignature",
     values: [Structs.SignatureParamsStruct, BytesLike]
@@ -106,6 +111,10 @@ export interface AbstractTeeAuthenticatorInterface extends Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "PK_LENGTH", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "checkBatchSignature",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "checkSignature",
     data: BytesLike
@@ -165,6 +174,12 @@ export interface AbstractTeeAuthenticator extends BaseContract {
 
   PK_LENGTH: TypedContractMethod<[], [bigint], "view">;
 
+  checkBatchSignature: TypedContractMethod<
+    [entryHashes: BytesLike[], signature: BytesLike],
+    [boolean],
+    "view"
+  >;
+
   checkSignature: TypedContractMethod<
     [params: Structs.SignatureParamsStruct, signature: BytesLike],
     [boolean],
@@ -182,6 +197,13 @@ export interface AbstractTeeAuthenticator extends BaseContract {
   getFunction(
     nameOrSignature: "PK_LENGTH"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "checkBatchSignature"
+  ): TypedContractMethod<
+    [entryHashes: BytesLike[], signature: BytesLike],
+    [boolean],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "checkSignature"
   ): TypedContractMethod<

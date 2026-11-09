@@ -84,9 +84,17 @@ export declare namespace Structs {
 
 export interface ITeeAuthenticatorInterface extends Interface {
   getFunction(
-    nameOrSignature: "checkSignature" | "getPubSecp521r1" | "getTeeSigner"
+    nameOrSignature:
+      | "checkBatchSignature"
+      | "checkSignature"
+      | "getPubSecp521r1"
+      | "getTeeSigner"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "checkBatchSignature",
+    values: [BytesLike[], BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "checkSignature",
     values: [Structs.SignatureParamsStruct, BytesLike]
@@ -100,6 +108,10 @@ export interface ITeeAuthenticatorInterface extends Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "checkBatchSignature",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "checkSignature",
     data: BytesLike
@@ -157,6 +169,12 @@ export interface ITeeAuthenticator extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  checkBatchSignature: TypedContractMethod<
+    [entryHashes: BytesLike[], signature: BytesLike],
+    [boolean],
+    "view"
+  >;
+
   checkSignature: TypedContractMethod<
     [params: Structs.SignatureParamsStruct, signature: BytesLike],
     [boolean],
@@ -171,6 +189,13 @@ export interface ITeeAuthenticator extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "checkBatchSignature"
+  ): TypedContractMethod<
+    [entryHashes: BytesLike[], signature: BytesLike],
+    [boolean],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "checkSignature"
   ): TypedContractMethod<

@@ -11,6 +11,8 @@ npm install vela-common-ts ethers
 
 > **Note:** `ethers` v6 is a peer dependency and must be installed separately.
 
+> **Compatibility:** this version targets the Vela **v0.3.0** contracts. Vela is deployed on Base (Base Sepolia for testing); any chain it runs on must be at the Cancun hardfork or later.
+
 ```bash
 npm run build
 ```
@@ -36,8 +38,8 @@ const signer = await ethersSignerFromBrowser();
 const client = new VelaClient(
   signer,
   false, // useAlternativeSign
-  '0x...', // TEE Authenticator contract address
-  '0x...'  // Processor Endpoint contract address
+  '0x...', // TEE Authenticator contract address (proxy)
+  '0x...'  // Processor Endpoint contract address (proxy)
 );
 
 // Encrypt payload data for the TEE
@@ -75,6 +77,8 @@ const client = new VelaClient(
 );
 ```
 
+> **Contract addresses:** since Vela v0.3.0, `ProcessorEndpoint`, `TeeAuthenticator` and `AuthorityRegistry` run behind UUPS proxies. Pass the **proxy** addresses, not the implementation addresses. They stay the same across contract upgrades.
+
 **Methods:**
 
 | Method | Description |
@@ -99,6 +103,11 @@ const client = new VelaClient(
 
 > **Block range:** `fromBlock` must be **>=** `toBlock` (most-recent → oldest), the opposite of Ethereum's usual convention. Passing `fromBlock < toBlock` throws.
 
+**Request processing (Vela v0.3.0):**
+
+- **Batches:** several requests of the same application can be settled in a single transaction. Each request still gets its own `RequestCompleted`, `UserEvent`, `AppEvent`, `Refund` and `Withdrawal` events, so lookups by `requestId` work as before. Do not assume one completed request per transaction or per block. Trigger requests, deploys and requests of apps that have a trigger contract are always settled one per transaction.
+- **Ordering:** each application has its own queue. Trigger requests are served first, then deploys, then applications take turns (round-robin). Requests are processed in submission order within one application, but not across applications, so a request can wait while other applications are served.
+
 #### `RequestType`
 
 ```typescript
@@ -106,9 +115,35 @@ enum RequestType {
   DEPLOYAPP = 0,
   PROCESS = 1,
   DEANONYMIZATION = 2,
-  ASSOCIATEKEY = 3
+  ASSOCIATEKEY = 3,
+  TRUSTPROCESS = 4
 }
 ```
+
+`TRUSTPROCESS` requests are created on-chain by an application's trigger contract and show up in `RequestSubmitted` events; they cannot be submitted directly (`submitRequest` reverts with `InvalidRequestType`, as it does for `DEPLOYAPP`).
+
+#### `ErrorCode`
+
+Mirrors `Structs.ErrorCode` in the Vela contracts. `RequestResult.errorCode` (bigint) and the subgraph's `errorCode` (number) carry these values; compare with `Number(result.errorCode) === ErrorCode.WRONG_KEY_SENT`.
+
+```typescript
+enum ErrorCode {
+  NO_ERROR = 0,
+  UNKNOWN = 1,
+  INTERNAL = 2,
+  APPLICATION_ALREADY_DEPLOYED = 3,
+  FUNCTION_NOT_FOUND = 4,
+  DEPOSIT_FAILED = 5,
+  REQUEST_FUNC_FAILED = 6,
+  WRONG_KEY_SENT = 7,
+  PUB_KEY_NOT_REGISTERED = 8,
+  NO_REPORT_DATA_FOUND = 9,
+  WASM_INTERNAL = 10,
+  INSUFFICIENT_FUEL = 11
+}
+```
+
+> **Vela v0.3.0:** `APP_NOT_DEPLOYED` was removed, so every code from `WRONG_KEY_SENT` onward is one lower than in v0.2.0. New failures map to existing codes: an oversized app state to `REQUEST_FUNC_FAILED`, a guest execution timeout to `WASM_INTERNAL` (`errorMessage` gives the detail, e.g. `guest execution timed out`).
 
 ### Crypto Functions
 
@@ -320,6 +355,8 @@ npm run build
 npm test
 ```
 
+The tests start an in-process Hardhat node on port 9545 (`src/testutil/localNode.ts`) and deploy the contracts from `src/typechain-types` behind `ERC1967Proxy` proxies, as in a real deployment. No external node is needed.
+
 ### Type Check
 
 ```bash
@@ -328,12 +365,13 @@ npm run check
 
 ### Update Contract Types
 
-If `vela` contracts are updated, clone the [Vela repository](https://github.com/HorizenOfficial/vela), then run:
+If `vela` contracts are updated, clone the [Vela repository](https://github.com/HorizenOfficial/vela), check out the release tag this library targets (e.g. `v0.3.0`), then run:
 
 ```bash
 cd contracts
 npm install
+npx hardhat clean   # removes stale bindings of deleted contracts
 npx hardhat compile
 ```
 
-Copy the generated `contracts/typechain-types` folder to replace `src/typechain-types` in this repository.
+Delete `src/typechain-types` in this repository and replace it with the generated `contracts/typechain-types` folder, then run `npm run check && npm test`. If the contracts' `@openzeppelin/contracts` version changes, update the matching dev dependency here (used by the tests for `ERC1967Proxy`) and `NOTICES`.

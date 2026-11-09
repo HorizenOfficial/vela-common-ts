@@ -34,6 +34,62 @@ export declare namespace Structs {
     amount: bigint;
   };
 
+  export type EventDataStruct = { events: BytesLike[]; subTypes: BytesLike[] };
+
+  export type EventDataStructOutput = [events: string[], subTypes: string[]] & {
+    events: string[];
+    subTypes: string[];
+  };
+
+  export type WithdrawalRequestStruct = {
+    tokenAddress: AddressLike;
+    receiver: AddressLike;
+    amount: BigNumberish;
+  };
+
+  export type WithdrawalRequestStructOutput = [
+    tokenAddress: string,
+    receiver: string,
+    amount: bigint
+  ] & { tokenAddress: string; receiver: string; amount: bigint };
+
+  export type BatchEntryStruct = {
+    prevStateRoot: BytesLike;
+    newStateRoot: BytesLike;
+    processedRequestId: BytesLike;
+    userEvents: Structs.EventDataStruct;
+    appEvents: Structs.EventDataStruct;
+    withdrawalRequests: Structs.WithdrawalRequestStruct[];
+    refund: BigNumberish;
+    applicationFees: BigNumberish;
+    errorCode: BigNumberish;
+    errorMsg: string;
+  };
+
+  export type BatchEntryStructOutput = [
+    prevStateRoot: string,
+    newStateRoot: string,
+    processedRequestId: string,
+    userEvents: Structs.EventDataStructOutput,
+    appEvents: Structs.EventDataStructOutput,
+    withdrawalRequests: Structs.WithdrawalRequestStructOutput[],
+    refund: bigint,
+    applicationFees: bigint,
+    errorCode: bigint,
+    errorMsg: string
+  ] & {
+    prevStateRoot: string;
+    newStateRoot: string;
+    processedRequestId: string;
+    userEvents: Structs.EventDataStructOutput;
+    appEvents: Structs.EventDataStructOutput;
+    withdrawalRequests: Structs.WithdrawalRequestStructOutput[];
+    refund: bigint;
+    applicationFees: bigint;
+    errorCode: bigint;
+    errorMsg: string;
+  };
+
   export type PendingRequestStruct = {
     timestamp: BigNumberish;
     tokenAddress: AddressLike;
@@ -73,25 +129,6 @@ export declare namespace Structs {
     protocolVersion: bigint;
     requestType: bigint;
   };
-
-  export type EventDataStruct = { events: BytesLike[]; subTypes: BytesLike[] };
-
-  export type EventDataStructOutput = [events: string[], subTypes: string[]] & {
-    events: string[];
-    subTypes: string[];
-  };
-
-  export type WithdrawalRequestStruct = {
-    tokenAddress: AddressLike;
-    receiver: AddressLike;
-    amount: BigNumberish;
-  };
-
-  export type WithdrawalRequestStructOutput = [
-    tokenAddress: string,
-    receiver: string,
-    amount: bigint
-  ] & { tokenAddress: string; receiver: string; amount: bigint };
 }
 
 export interface IProcessorEndpointInterface extends Interface {
@@ -101,20 +138,23 @@ export interface IProcessorEndpointInterface extends Interface {
       | "adminReset"
       | "adminResetApps"
       | "appCustody"
+      | "batchStateUpdate"
       | "claim"
+      | "extension"
+      | "facilitatorNonces"
       | "generateRequestId"
       | "getDeployedAppIds"
-      | "getFacilitatorNonce"
-      | "getNextPendingRequest"
       | "getPendingRequests"
       | "getPendingRequestsPage"
       | "getPendingRequestsSize"
+      | "getPendingRequestsWithStateRoot"
       | "getTriggerQueueSize"
       | "getTriggerRequests"
       | "isAllowedDeployer"
       | "isCurrentPendingRequest"
       | "pendingClaims"
       | "removeAllowedDeployer"
+      | "requestById"
       | "stateUpdate"
       | "submitDeployRequest"
       | "submitDeployRequestWithTrigger"
@@ -126,11 +166,13 @@ export interface IProcessorEndpointInterface extends Interface {
       | "updateFeeCollector"
       | "updateMaxNumOfApplications"
       | "updateQueueThreshold"
+      | "updateSelectionGrace"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
       | "AppEvent"
+      | "BatchProcessed"
       | "DeployRequestCompleted"
       | "DeployRequestSubmitted"
       | "FeeCollectorUpdated"
@@ -141,6 +183,7 @@ export interface IProcessorEndpointInterface extends Interface {
       | "ReportGenerated"
       | "RequestCompleted"
       | "RequestSubmitted"
+      | "SelectionGraceUpdated"
       | "StateRootUpdate"
       | "TriggerExecuted"
       | "TriggerWithdraw"
@@ -165,8 +208,17 @@ export interface IProcessorEndpointInterface extends Interface {
     values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "batchStateUpdate",
+    values: [BigNumberish, Structs.BatchEntryStruct[], BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "claim",
     values: [AddressLike, AddressLike]
+  ): string;
+  encodeFunctionData(functionFragment: "extension", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "facilitatorNonces",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "generateRequestId",
@@ -185,14 +237,6 @@ export interface IProcessorEndpointInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getFacilitatorNonce",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getNextPendingRequest",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getPendingRequests",
     values?: undefined
   ): string;
@@ -203,6 +247,10 @@ export interface IProcessorEndpointInterface extends Interface {
   encodeFunctionData(
     functionFragment: "getPendingRequestsSize",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPendingRequestsWithStateRoot",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getTriggerQueueSize",
@@ -227,6 +275,10 @@ export interface IProcessorEndpointInterface extends Interface {
   encodeFunctionData(
     functionFragment: "removeAllowedDeployer",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "requestById",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "stateUpdate",
@@ -304,6 +356,10 @@ export interface IProcessorEndpointInterface extends Interface {
     functionFragment: "updateQueueThreshold",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "updateSelectionGrace",
+    values: [BigNumberish]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "addAllowedDeployer",
@@ -315,21 +371,22 @@ export interface IProcessorEndpointInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "appCustody", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "batchStateUpdate",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "extension", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "facilitatorNonces",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "generateRequestId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getDeployedAppIds",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFacilitatorNonce",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getNextPendingRequest",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -342,6 +399,10 @@ export interface IProcessorEndpointInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPendingRequestsSize",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPendingRequestsWithStateRoot",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -366,6 +427,10 @@ export interface IProcessorEndpointInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "removeAllowedDeployer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "requestById",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -412,6 +477,10 @@ export interface IProcessorEndpointInterface extends Interface {
     functionFragment: "updateQueueThreshold",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateSelectionGrace",
+    data: BytesLike
+  ): Result;
 }
 
 export namespace AppEventEvent {
@@ -432,6 +501,22 @@ export namespace AppEventEvent {
     requestId: string;
     eventSubType: string;
     data: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace BatchProcessedEvent {
+  export type InputTuple = [
+    applicationId: BigNumberish,
+    entryHashes: BytesLike[]
+  ];
+  export type OutputTuple = [applicationId: bigint, entryHashes: string[]];
+  export interface OutputObject {
+    applicationId: bigint;
+    entryHashes: string[];
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -648,6 +733,18 @@ export namespace RequestSubmittedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace SelectionGraceUpdatedEvent {
+  export type InputTuple = [newGrace: BigNumberish];
+  export type OutputTuple = [newGrace: bigint];
+  export interface OutputObject {
+    newGrace: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace StateRootUpdateEvent {
   export type InputTuple = [
     applicationId: BigNumberish,
@@ -842,11 +939,25 @@ export interface IProcessorEndpoint extends BaseContract {
     "view"
   >;
 
+  batchStateUpdate: TypedContractMethod<
+    [
+      applicationId: BigNumberish,
+      entries: Structs.BatchEntryStruct[],
+      batchSignature: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
   claim: TypedContractMethod<
     [tokenAddress: AddressLike, payee: AddressLike],
     [void],
     "nonpayable"
   >;
+
+  extension: TypedContractMethod<[], [string], "view">;
+
+  facilitatorNonces: TypedContractMethod<[user: AddressLike], [bigint], "view">;
 
   generateRequestId: TypedContractMethod<
     [
@@ -864,18 +975,6 @@ export interface IProcessorEndpoint extends BaseContract {
 
   getDeployedAppIds: TypedContractMethod<[], [bigint[]], "view">;
 
-  getFacilitatorNonce: TypedContractMethod<
-    [user: AddressLike],
-    [bigint],
-    "view"
-  >;
-
-  getNextPendingRequest: TypedContractMethod<
-    [],
-    [[Structs.PendingRequestStructOutput, string, boolean]],
-    "view"
-  >;
-
   getPendingRequests: TypedContractMethod<
     [],
     [Structs.PendingRequestStructOutput[]],
@@ -889,6 +988,18 @@ export interface IProcessorEndpoint extends BaseContract {
   >;
 
   getPendingRequestsSize: TypedContractMethod<[], [bigint], "view">;
+
+  getPendingRequestsWithStateRoot: TypedContractMethod<
+    [maxCount: BigNumberish],
+    [
+      [bigint, Structs.PendingRequestStructOutput[], string] & {
+        applicationId: bigint;
+        requests: Structs.PendingRequestStructOutput[];
+        stateRoot: string;
+      }
+    ],
+    "view"
+  >;
 
   getTriggerQueueSize: TypedContractMethod<[], [bigint], "view">;
 
@@ -920,6 +1031,12 @@ export interface IProcessorEndpoint extends BaseContract {
     [deployer: AddressLike],
     [void],
     "nonpayable"
+  >;
+
+  requestById: TypedContractMethod<
+    [id: BytesLike],
+    [Structs.PendingRequestStructOutput],
+    "view"
   >;
 
   stateUpdate: TypedContractMethod<
@@ -1016,6 +1133,12 @@ export interface IProcessorEndpoint extends BaseContract {
     "nonpayable"
   >;
 
+  updateSelectionGrace: TypedContractMethod<
+    [newGrace: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -1037,12 +1160,29 @@ export interface IProcessorEndpoint extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "batchStateUpdate"
+  ): TypedContractMethod<
+    [
+      applicationId: BigNumberish,
+      entries: Structs.BatchEntryStruct[],
+      batchSignature: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "claim"
   ): TypedContractMethod<
     [tokenAddress: AddressLike, payee: AddressLike],
     [void],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "extension"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "facilitatorNonces"
+  ): TypedContractMethod<[user: AddressLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "generateRequestId"
   ): TypedContractMethod<
@@ -1062,16 +1202,6 @@ export interface IProcessorEndpoint extends BaseContract {
     nameOrSignature: "getDeployedAppIds"
   ): TypedContractMethod<[], [bigint[]], "view">;
   getFunction(
-    nameOrSignature: "getFacilitatorNonce"
-  ): TypedContractMethod<[user: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getNextPendingRequest"
-  ): TypedContractMethod<
-    [],
-    [[Structs.PendingRequestStructOutput, string, boolean]],
-    "view"
-  >;
-  getFunction(
     nameOrSignature: "getPendingRequests"
   ): TypedContractMethod<[], [Structs.PendingRequestStructOutput[]], "view">;
   getFunction(
@@ -1084,6 +1214,19 @@ export interface IProcessorEndpoint extends BaseContract {
   getFunction(
     nameOrSignature: "getPendingRequestsSize"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getPendingRequestsWithStateRoot"
+  ): TypedContractMethod<
+    [maxCount: BigNumberish],
+    [
+      [bigint, Structs.PendingRequestStructOutput[], string] & {
+        applicationId: bigint;
+        requests: Structs.PendingRequestStructOutput[];
+        stateRoot: string;
+      }
+    ],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "getTriggerQueueSize"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -1106,6 +1249,13 @@ export interface IProcessorEndpoint extends BaseContract {
   getFunction(
     nameOrSignature: "removeAllowedDeployer"
   ): TypedContractMethod<[deployer: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "requestById"
+  ): TypedContractMethod<
+    [id: BytesLike],
+    [Structs.PendingRequestStructOutput],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "stateUpdate"
   ): TypedContractMethod<
@@ -1191,6 +1341,9 @@ export interface IProcessorEndpoint extends BaseContract {
   getFunction(
     nameOrSignature: "updateQueueThreshold"
   ): TypedContractMethod<[newThreshold: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "updateSelectionGrace"
+  ): TypedContractMethod<[newGrace: BigNumberish], [void], "nonpayable">;
 
   getEvent(
     key: "AppEvent"
@@ -1198,6 +1351,13 @@ export interface IProcessorEndpoint extends BaseContract {
     AppEventEvent.InputTuple,
     AppEventEvent.OutputTuple,
     AppEventEvent.OutputObject
+  >;
+  getEvent(
+    key: "BatchProcessed"
+  ): TypedContractEvent<
+    BatchProcessedEvent.InputTuple,
+    BatchProcessedEvent.OutputTuple,
+    BatchProcessedEvent.OutputObject
   >;
   getEvent(
     key: "DeployRequestCompleted"
@@ -1270,6 +1430,13 @@ export interface IProcessorEndpoint extends BaseContract {
     RequestSubmittedEvent.OutputObject
   >;
   getEvent(
+    key: "SelectionGraceUpdated"
+  ): TypedContractEvent<
+    SelectionGraceUpdatedEvent.InputTuple,
+    SelectionGraceUpdatedEvent.OutputTuple,
+    SelectionGraceUpdatedEvent.OutputObject
+  >;
+  getEvent(
     key: "StateRootUpdate"
   ): TypedContractEvent<
     StateRootUpdateEvent.InputTuple,
@@ -1315,6 +1482,17 @@ export interface IProcessorEndpoint extends BaseContract {
       AppEventEvent.InputTuple,
       AppEventEvent.OutputTuple,
       AppEventEvent.OutputObject
+    >;
+
+    "BatchProcessed(uint64,bytes32[])": TypedContractEvent<
+      BatchProcessedEvent.InputTuple,
+      BatchProcessedEvent.OutputTuple,
+      BatchProcessedEvent.OutputObject
+    >;
+    BatchProcessed: TypedContractEvent<
+      BatchProcessedEvent.InputTuple,
+      BatchProcessedEvent.OutputTuple,
+      BatchProcessedEvent.OutputObject
     >;
 
     "DeployRequestCompleted(uint64,bytes32,uint256,uint8,uint8,string)": TypedContractEvent<
@@ -1425,6 +1603,17 @@ export interface IProcessorEndpoint extends BaseContract {
       RequestSubmittedEvent.InputTuple,
       RequestSubmittedEvent.OutputTuple,
       RequestSubmittedEvent.OutputObject
+    >;
+
+    "SelectionGraceUpdated(uint256)": TypedContractEvent<
+      SelectionGraceUpdatedEvent.InputTuple,
+      SelectionGraceUpdatedEvent.OutputTuple,
+      SelectionGraceUpdatedEvent.OutputObject
+    >;
+    SelectionGraceUpdated: TypedContractEvent<
+      SelectionGraceUpdatedEvent.InputTuple,
+      SelectionGraceUpdatedEvent.OutputTuple,
+      SelectionGraceUpdatedEvent.OutputObject
     >;
 
     "StateRootUpdate(uint64,bytes32,bytes32,bytes32)": TypedContractEvent<
